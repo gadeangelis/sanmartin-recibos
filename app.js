@@ -1,20 +1,24 @@
-// Al principio de tu archivo app.js
-document.addEventListener('DOMContentLoaded', () => {
-    const claveCorrecta = "1234"; // <--- CAMBIA ESTO POR TU CLAVE ELEGIDA
-    let acceso = sessionStorage.getItem('accesoPermitido');
+const CLAVE_CORRECTA = "1234"; // Tu clave
 
-    if (acceso !== 'true') {
-        let intento = prompt("Ingrese la clave de acceso para Recibos La Colonia:");
-        
-        if (intento === claveCorrecta) {
-            sessionStorage.setItem('accesoPermitido', 'true');
-            alert("Acceso concedido");
-        } else {
-            alert("Clave incorrecta. No puede usar la aplicación.");
-            document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px;'>Acceso Denegado</h1>";
-        }
+// Al cargar la página, verificamos si ya entró antes
+document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('accesoPermitido') === 'true') {
+        document.getElementById('pantalla-login').style.display = 'none';
     }
 });
+
+function verificarClave() {
+    const inputClave = document.getElementById('input-clave').value;
+    const errorMsg = document.getElementById('error-msg');
+
+    if (inputClave === CLAVE_CORRECTA) {
+        localStorage.setItem('accesoPermitido', 'true');
+        document.getElementById('pantalla-login').style.display = 'none';
+    } else {
+        errorMsg.style.display = 'block';
+        document.getElementById('input-clave').value = ''; // Limpia el campo
+    }
+}
 
 const firebaseConfig = {
   apiKey: "AIzaSyDAYYgHTSq__yYhv405u0r-0Lr6XWsgH4M",

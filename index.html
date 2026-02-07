@@ -77,6 +77,14 @@
 </script>
 </head>
 <body>
+<div id="pantalla-login" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#f8f9fa; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <img src="logo.png" alt="Logo" style="width:120px; margin-bottom:20px;">
+    <h2 style="color:#008f39; font-family:sans-serif;">LA COLONIA HOCKEY</h2>
+    <p style="font-family:sans-serif; color:#666;">Ingrese clave de acceso</p>
+    <input type="password" id="input-clave" style="padding:10px; border-radius:5px; border:1px solid #ccc; margin-bottom:10px; text-align:center;">
+    <button onclick="verificarClave()" style="padding:10px 20px; background:#008f39; color:white; border:none; border-radius:5px; cursor:pointer;">Entrar</button>
+    <p id="error-msg" style="color:red; font-family:sans-serif; display:none; margin-top:10px;">Clave incorrecta</p>
+</div>
 
 <div class="container-main no-print">
     <div class="card card-formulario p-4 mb-4">
