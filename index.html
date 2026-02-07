@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root { --verde-club: #1a5928; --rojo-folio: #d9534f; }
+        :root { --verde-club: #1a5928; --negro-folio: #000000; }
         body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
         .container-main { padding: 15px; max-width: 600px; margin: auto; }
         .card-formulario { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -27,7 +27,7 @@
             margin: 0 auto;
         }
         .logo-recibo { width: 130px; height: auto; }
-        .folio-numero { color: var(--rojo-folio); font-weight: bold; font-size: 1.4rem; margin: 0; }
+        .folio-numero { color: var(--negro-folio); font-weight: bold; font-size: 1.4rem; margin: 0; }
         
         .linea-dato { 
             border-bottom: 1px dashed #ccc; 
@@ -140,8 +140,14 @@
         <div class="mb-3 border-bottom pb-3">
             <input type="text" id="nuevoSocioNombre" class="form-control mb-2" placeholder="Nombre Completo">
             <select id="nuevoSocioCat" class="form-select mb-2">
-                <option>ESCUELITA INICIAL</option><option>INFANTIL FEMENINO</option>
-                <option>INFANTIL MASCULINO</option><option>MINI</option><option>JUVENIL</option>
+                <option>ESCUELITA INICIAL</option>
+                <option>ESCUELA FEMENINO</option>
+                <option>PROMO MASCULINO</option>
+                <option>MINI</option>
+                <option>INFANTIL</option>
+                <option>CADETE</option>
+                <option>JUVENIL</option>
+                <option>MAMIS</option>
             </select>
             <button class="btn btn-primary w-100" id="btnGuardarSocio">Guardar Socio</button>
         </div>

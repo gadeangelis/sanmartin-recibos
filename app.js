@@ -31,7 +31,7 @@ const db = firebase.database();
 
 let socios = [];
 let historial = [];
-let numeroFolio = 162;
+let numeroFolio = 1;
 let mostrarHistorial = false;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -141,7 +141,7 @@ async function enviarWA(id) {
         link.href = imgData;
         link.click();
         area.style.display = 'none';
-        const msj = `*Recibo A.H C.J*%0A*Socio:* ${d.Jugador}%0A*Monto:* $${d.Importe}`;
+        const msj = `*Recibo A.H C.J*%0A*Socio:* ${d.Jugador}%0A*Mes:* $${d.Mes}%0A*Monto:* $${d.Importe}`;
         window.open(`https://wa.me/?text=${msj}`, '_blank');
     } catch (e) { area.style.display = 'none'; }
 }
