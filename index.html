@@ -66,6 +66,15 @@
             }
         }
     </style>
+    <link rel="manifest" href="manifest.json">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('App lista para usar en celular'))
+      .catch(err => console.log('Error al registrar app', err));
+  }
+</script>
 </head>
 <body>
 
