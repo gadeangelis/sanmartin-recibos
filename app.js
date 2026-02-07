@@ -1,8 +1,8 @@
 const CLAVE_CORRECTA = "1234"; // Tu clave
 
-// Al cargar la página, verificamos si ya entró antes
 document.addEventListener('DOMContentLoaded', () => {
-    if (localStorage.getItem('accesoPermitido') === 'true') {
+    // Cambiamos a sessionStorage: esto se borra al cerrar la pestaña o la app
+    if (sessionStorage.getItem('accesoPermitido') === 'true') {
         document.getElementById('pantalla-login').style.display = 'none';
     }
 });
@@ -12,11 +12,12 @@ function verificarClave() {
     const errorMsg = document.getElementById('error-msg');
 
     if (inputClave === CLAVE_CORRECTA) {
-        localStorage.setItem('accesoPermitido', 'true');
+        // Se guarda solo por esta sesión
+        sessionStorage.setItem('accesoPermitido', 'true');
         document.getElementById('pantalla-login').style.display = 'none';
     } else {
         errorMsg.style.display = 'block';
-        document.getElementById('input-clave').value = ''; // Limpia el campo
+        document.getElementById('input-clave').value = ''; 
     }
 }
 
