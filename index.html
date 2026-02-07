@@ -17,7 +17,7 @@
         /* Sugerencias de búsqueda */
         #listaSugerencias { z-index: 2000; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ddd; }
 
-        /* --- RECUPERAMOS EL FORMATO ORIGINAL --- */
+        /* --- FORMATO RECIBO --- */
         #areaRecibo { 
             width: 500px; 
             background: white; 
@@ -55,7 +55,7 @@
 
         /* Ajustes de Impresión */
         @media print {
-            .no-print, .modal, .modal-backdrop { display: none !important; }
+            .no-print, .modal, .modal-backdrop, #pantalla-login, #modal-confirmacion { display: none !important; }
             body { background: white !important; }
             #areaRecibo { 
                 display: block !important; 
@@ -68,22 +68,34 @@
     </style>
     <link rel="manifest" href="manifest.json">
 
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('App lista para usar en celular'))
-      .catch(err => console.log('Error al registrar app', err));
-  }
-</script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('App lista'))
+          .catch(err => console.log('Error sw', err));
+      }
+    </script>
 </head>
 <body>
+
 <div id="pantalla-login" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#f8f9fa; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
     <img src="logo.png" alt="Logo" style="width:120px; margin-bottom:20px;">
-    <h2 style="color:#008f39; font-family:sans-serif;">LA COLONIA HOCKEY</h2>
+    <h2 style="color:#008f39; font-family:sans-serif; font-weight: bold;">LA COLONIA HOCKEY</h2>
     <p style="font-family:sans-serif; color:#666;">Ingrese clave de acceso</p>
-    <input type="password" id="input-clave" style="padding:10px; border-radius:5px; border:1px solid #ccc; margin-bottom:10px; text-align:center;">
-    <button onclick="verificarClave()" style="padding:10px 20px; background:#008f39; color:white; border:none; border-radius:5px; cursor:pointer;">Entrar</button>
-    <p id="error-msg" style="color:red; font-family:sans-serif; display:none; margin-top:10px;">Clave incorrecta</p>
+    <input type="password" id="input-clave" style="padding:12px; border-radius:8px; border:1px solid #ccc; margin-bottom:15px; text-align:center; width: 200px; font-size: 1.2rem;">
+    <button onclick="verificarClave()" style="padding:10px 30px; background:#008f39; color:white; border:none; border-radius:8px; cursor:pointer; font-weight: bold;">ENTRAR</button>
+    <p id="error-msg" style="color:red; font-family:sans-serif; display:none; margin-top:15px; font-weight: bold;">Clave incorrecta</p>
+</div>
+
+<div id="modal-confirmacion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
+    <div style="background:white; padding:30px; border-radius:15px; text-align:center; max-width:320px; font-family:sans-serif; shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <h3 style="color:#d9534f; margin-top:0; font-weight: bold;">¿Estás seguro?</h3>
+        <p id="modal-mensaje" style="color:#444; margin-bottom: 25px; line-height: 1.4;"></p>
+        <div style="display:flex; justify-content:space-between; gap: 10px;">
+            <button id="btn-cancelar" style="flex: 1; padding:12px; border:none; border-radius:8px; cursor:pointer; background:#eee; font-weight: bold;">Cancelar</button>
+            <button id="btn-confirmar" style="flex: 1; padding:12px; border:none; border-radius:8px; cursor:pointer; background:#d9534f; color:white; font-weight: bold;">Eliminar</button>
+        </div>
+    </div>
 </div>
 
 <div class="container-main no-print">
@@ -206,5 +218,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="app.js"></script>
+
 </body>
 </html>

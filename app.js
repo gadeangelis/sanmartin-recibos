@@ -1,18 +1,17 @@
-const CLAVE_CORRECTA = "1234"; // Tu clave
+const CLAVE_CORRECTA = "2026"; 
 
+// --- SEGURIDAD ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Cambiamos a sessionStorage: esto se borra al cerrar la pestaña o la app
     if (sessionStorage.getItem('accesoPermitido') === 'true') {
-        document.getElementById('pantalla-login').style.display = 'none';
+        const login = document.getElementById('pantalla-login');
+        if(login) login.style.display = 'none';
     }
 });
 
 function verificarClave() {
     const inputClave = document.getElementById('input-clave').value;
     const errorMsg = document.getElementById('error-msg');
-
     if (inputClave === CLAVE_CORRECTA) {
-        // Se guarda solo por esta sesión
         sessionStorage.setItem('accesoPermitido', 'true');
         document.getElementById('pantalla-login').style.display = 'none';
     } else {
@@ -21,6 +20,20 @@ function verificarClave() {
     }
 }
 
+function mostrarConfirmacion(mensaje, accionConfirmada) {
+    const modal = document.getElementById('modal-confirmacion');
+    const mensajeTxt = document.getElementById('modal-mensaje');
+    const btnConfirmar = document.getElementById('btn-confirmar');
+    const btnCancelar = document.getElementById('btn-cancelar');
+
+    mensajeTxt.innerText = mensaje;
+    modal.style.display = 'flex';
+
+    btnConfirmar.onclick = () => { accionConfirmada(); modal.style.display = 'none'; };
+    btnCancelar.onclick = () => { modal.style.display = 'none'; };
+}
+
+// --- CONFIGURACIÓN FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyDAYYgHTSq__yYhv405u0r-0Lr6XWsgH4M",
   authDomain: "sistema-hockey.firebaseapp.com",
@@ -39,6 +52,7 @@ let historial = [];
 let numeroFolio = 1;
 let mostrarHistorial = false;
 
+// --- LÓGICA DE LA APP ---
 document.addEventListener('DOMContentLoaded', () => {
     db.ref('socios').on('value', (snapshot) => {
         socios = [];
@@ -115,14 +129,28 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
+// --- FUNCIONES DE ELIMINACIÓN (YA NO USAN CONFIRM) ---
+function borrarReciboUnico(id) { 
+    mostrarConfirmacion("¿Deseas eliminar este recibo de LA COLONIA?", () => {
+        db.ref('historial').child(id).remove();
+    });
+}
+
+function borrarSocio(id) { 
+    mostrarConfirmacion("¿Deseas eliminar a este socio del sistema?", () => {
+        db.ref('socios').child(id).remove();
+    });
+}
+
+// --- RESTO DE FUNCIONES ---
 function imprimirRecibo(datos) {
     const modalH = document.getElementById('modalHistorial');
-    const instance = bootstrap.Modal.getInstance(modalH);
-    if (instance) instance.hide();
-
+    if(modalH) {
+        const instance = bootstrap.Modal.getInstance(modalH);
+        if (instance) instance.hide();
+    }
     llenarCamposRecibo(datos);
     const area = document.getElementById('areaRecibo');
-    
     setTimeout(() => {
         area.style.display = 'block';
         setTimeout(() => {
@@ -137,7 +165,6 @@ async function enviarWA(id) {
     llenarCamposRecibo(d);
     const area = document.getElementById('areaRecibo');
     area.style.display = 'block';
-
     try {
         const canvas = await html2canvas(area, { scale: 3, useCORS: true });
         const imgData = canvas.toDataURL("image/png");
@@ -167,7 +194,6 @@ function actualizarTablaHistorial() {
     const filtro = document.getElementById('filtroHistorial').value.toLowerCase();
     if(!body) return;
     body.innerHTML = '';
-    
     [...historial].reverse().forEach((reg) => {
         if(reg.Jugador.toLowerCase().includes(filtro)) {
             const tr = document.createElement('tr');
@@ -190,7 +216,6 @@ function actualizarTablaHistorial() {
 
 function cargarTodoElHistorial() { mostrarHistorial = true; actualizarTablaHistorial(); }
 function limpiarVistaHistorial() { mostrarHistorial = false; document.getElementById('tablaHistorialBody').innerHTML = ''; }
-function borrarReciboUnico(id) { if(confirm("¿Eliminar?")) db.ref('historial').child(id).remove(); }
 function reimprimirUno(id) { imprimirRecibo(historial.find(h => h.id === id)); }
 
 function exportarExcel() {
@@ -212,4 +237,3 @@ function actualizarListaSociosUI() {
         lista.appendChild(li);
     });
 }
-function borrarSocio(id) { if(confirm("¿Eliminar socio?")) db.ref('socios').child(id).remove(); }
