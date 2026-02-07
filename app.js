@@ -1,3 +1,21 @@
+// Al principio de tu archivo app.js
+document.addEventListener('DOMContentLoaded', () => {
+    const claveCorrecta = "1234"; // <--- CAMBIA ESTO POR TU CLAVE ELEGIDA
+    let acceso = sessionStorage.getItem('accesoPermitido');
+
+    if (acceso !== 'true') {
+        let intento = prompt("Ingrese la clave de acceso para Recibos La Colonia:");
+        
+        if (intento === claveCorrecta) {
+            sessionStorage.setItem('accesoPermitido', 'true');
+            alert("Acceso concedido");
+        } else {
+            alert("Clave incorrecta. No puede usar la aplicación.");
+            document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px;'>Acceso Denegado</h1>";
+        }
+    }
+});
+
 const firebaseConfig = {
   apiKey: "AIzaSyDAYYgHTSq__yYhv405u0r-0Lr6XWsgH4M",
   authDomain: "sistema-hockey.firebaseapp.com",
