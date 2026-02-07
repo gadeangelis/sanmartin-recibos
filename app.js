@@ -141,7 +141,7 @@ async function enviarWA(id) {
         link.href = imgData;
         link.click();
         area.style.display = 'none';
-        const msj = `*Recibo A.H C.J*%0A*Socio:* ${d.Jugador}%0A*Mes:* $${d.Mes}%0A*Monto:* $${d.Importe}`;
+        const msj = `*Recibo A.H C.J*%0A*Socio:* ${d.Jugador}%0A*Mes:* ${d.Mes}%0A*Concepto:* ${d.Concepto}%0A*Monto:* $${d.Importe}`;
         window.open(`https://wa.me/?text=${msj}`, '_blank');
     } catch (e) { area.style.display = 'none'; }
 }
