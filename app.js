@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(n) {
                 db.ref('socios').push({ nombre: n, categoria: c })
                 .then(() => {
-                    nInput.value = ''; // Limpiar campo
+                    nInput.value = ''; // <--- ESTO ES LO QUE BUSCÁS
                     alert("Socio guardado correctamente");
                 });
             } else {
@@ -133,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
     }
-});
 
 // --- FUNCIONES DE APOYO ---
 
