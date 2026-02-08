@@ -20,30 +20,14 @@ function verificarClave() {
     }
 }
 
-// --- FUNCIÓN DE CARTEL PERSONALIZADO (CORREGIDA) ---
 function mostrarConfirmacion(mensaje, accionConfirmada) {
     const modal = document.getElementById('modal-confirmacion');
     const mensajeTxt = document.getElementById('modal-mensaje');
-    const titulo = modal.querySelector('h5') || { innerText: "" };
     const btnConfirmar = document.getElementById('btn-confirmar');
     const btnCancelar = document.getElementById('btn-cancelar');
-    
-    // Si el mensaje incluye "Socio" o "correctamente", es un aviso de éxito
-    const esExito = mensaje.includes("correctamente") || mensaje.includes("Socio");
-
     mensajeTxt.innerText = mensaje;
-    btnConfirmar.innerText = esExito ? "Aceptar" : "Eliminar";
-    btnConfirmar.className = esExito ? "btn btn-primary" : "btn btn-danger";
-    
-    // Ocultar cancelar si es solo un aviso de éxito
-    btnCancelar.style.display = esExito ? 'none' : 'inline-block';
-    
     modal.style.display = 'flex';
-
-    btnConfirmar.onclick = () => { 
-        if(accionConfirmada) accionConfirmada(); 
-        modal.style.display = 'none'; 
-    };
+    btnConfirmar.onclick = () => { accionConfirmada(); modal.style.display = 'none'; };
     btnCancelar.onclick = () => { modal.style.display = 'none'; };
 }
 
@@ -68,12 +52,14 @@ let mostrarHistorial = false;
 
 // --- CARGA DE DATOS ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Sincronizar Socios
     db.ref('socios').on('value', (snapshot) => {
         socios = [];
         snapshot.forEach((child) => { socios.push({ id: child.key, ...child.val() }); });
         actualizarListaSociosUI();
     });
 
+    // Sincronizar Historial
     db.ref('historial').on('value', (snapshot) => {
         historial = [];
         snapshot.forEach((child) => { historial.push({ id: child.key, ...child.val() }); });
@@ -84,9 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mostrarHistorial) actualizarTablaHistorial();
     });
 
-    // Buscador
+    // Buscador de Socios
     const inputNombre = document.getElementById('nombre');
     const sugerencias = document.getElementById('listaSugerencias');
+
     inputNombre.addEventListener('input', (e) => {
         const val = e.target.value.toUpperCase();
         sugerencias.innerHTML = '';
@@ -126,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.reset();
     });
 
-    // --- GUARDADO DE SOCIOS ---
+    // --- AQUÍ ESTÁ EL CAMBIO: FUNCIÓN PARA EL BOTÓN DE SOCIOS ---
     const btnGuardar = document.getElementById('btnGuardarSocio');
     if(btnGuardar) {
         btnGuardar.onclick = () => {
@@ -134,55 +121,105 @@ document.addEventListener('DOMContentLoaded', () => {
             const cInput = document.getElementById('nuevoSocioCat');
             const n = nInput.value.toUpperCase().trim();
             const c = cInput.value;
+
             if(n) {
                 db.ref('socios').push({ nombre: n, categoria: c })
                 .then(() => {
-                    nInput.value = ''; 
-                    mostrarConfirmacion("Socio guardado correctamente", () => {
-                        const modalSocio = document.getElementById('modalSocio');
-                        const modalBS = bootstrap.Modal.getInstance(modalSocio);
-                        if (modalBS) modalBS.hide();
-                    });
+                    nInput.value = ''; // Limpiar campo
+                    alert("Socio guardado correctamente");
                 });
+            } else {
+                alert("Por favor, ingrese un nombre");
             }
         };
     }
 });
 
-// --- FUNCIONES EXTRAS ---
+// --- FUNCIONES DE APOYO ---
+
 function enviarWA(id) {
     const reg = historial.find(h => h.id === id);
     if (!reg) return;
     const msj = `*RECIBO DE PAGO - SAN MARTIN HOCKEY*%0A` +
-                `*Folio:* ${reg.Nro_Folio}%0A*Socio:* ${reg.Jugador}%0A*Monto:* $${reg.Importe}`;
+                `---------------------------------%0A` +
+                `*Folio:* ${reg.Nro_Folio}%0A` +
+                `*Fecha:* ${reg.Fecha}%0A` +
+                `*Socio:* ${reg.Jugador}%0A` +
+                `*Concepto:* ${reg.Concepto} (${reg.Mes})%0A` +
+                `*Monto:* $${reg.Importe}%0A` +
+                `*Pago:* ${reg.Metodo_Pago}%0A` +
+                `---------------------------------%0A` +
+                `_Gracias por tu pago_`;
     window.open(`https://wa.me/?text=${msj}`, '_blank');
 }
+
 function actualizarTablaHistorial() {
     const body = document.getElementById('tablaHistorialBody');
+    const filtro = document.getElementById('filtroHistorial').value.toLowerCase();
     if(!body) return;
     body.innerHTML = '';
     [...historial].reverse().forEach((reg) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${reg.Nro_Folio}</td><td>${reg.Fecha}</td><td>${reg.Jugador}</td><td>$${reg.Importe}</td>
-            <td><button class="btn btn-sm btn-primary" onclick="reimprimirUno('${reg.id}')">🖨️</button></td>`;
-        body.appendChild(tr);
+        if(reg.Jugador.toLowerCase().includes(filtro)) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${reg.Nro_Folio}</td>
+                <td>${reg.Fecha}</td>
+                <td>${reg.Jugador}</td>
+                <td>$${reg.Importe}</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-primary" onclick="reimprimirUno('${reg.id}')"><i class="fa fa-print"></i></button>
+                        <button class="btn btn-sm btn-success" onclick="enviarWA('${reg.id}')"><i class="fab fa-whatsapp"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="borrarReciboUnico('${reg.id}')"><i class="fa fa-trash"></i></button>
+                    </div>
+                </td>`;
+            body.appendChild(tr);
+        }
     });
 }
-function imprimirRecibo(datos) { llenarCamposRecibo(datos); document.getElementById('areaRecibo').style.display='block'; setTimeout(()=> { window.print(); document.getElementById('areaRecibo').style.display='none'; }, 500); }
-function llenarCamposRecibo(d) { document.getElementById('r-folio').innerText = d.Nro_Folio; document.getElementById('r-nombre').innerText = d.Jugador; document.getElementById('r-total').innerText = d.Importe; }
+
+function imprimirRecibo(datos) {
+    llenarCamposRecibo(datos);
+    const area = document.getElementById('areaRecibo');
+    area.style.display = 'block';
+    setTimeout(() => {
+        window.print();
+        area.style.display = 'none';
+    }, 500);
+}
+
+function llenarCamposRecibo(d) {
+    document.getElementById('r-folio').innerText = d.Nro_Folio;
+    document.getElementById('r-fecha').innerText = d.Fecha;
+    document.getElementById('r-nombre').innerText = d.Jugador;
+    document.getElementById('r-categoria').innerText = d.Categoria;
+    document.getElementById('r-mes').innerText = d.Mes;
+    document.getElementById('r-concepto').innerText = d.Concepto;
+    document.getElementById('r-pago').innerText = d.Metodo_Pago;
+    document.getElementById('r-total').innerText = parseFloat(d.Importe).toLocaleString('es-AR', {minimumFractionDigits:2});
+}
+
 function borrarReciboUnico(id) { mostrarConfirmacion("¿Eliminar recibo?", () => db.ref('historial').child(id).remove()); }
 function borrarSocio(id) { mostrarConfirmacion("¿Eliminar socio?", () => db.ref('socios').child(id).remove()); }
 function cargarTodoElHistorial() { mostrarHistorial = true; actualizarTablaHistorial(); }
 function reimprimirUno(id) { imprimirRecibo(historial.find(h => h.id === id)); }
 function limpiarVistaHistorial() { mostrarHistorial = false; document.getElementById('tablaHistorialBody').innerHTML = ''; }
+
+function exportarExcel() {
+    const ws = XLSX.utils.json_to_sheet(historial);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pagos");
+    XLSX.writeFile(wb, "Reporte_Cobranza.xlsx");
+}
+
 function actualizarListaSociosUI() {
     const lista = document.getElementById('listaSociosGuardados');
     if(!lista) return;
     lista.innerHTML = '';
     socios.forEach(s => {
         const li = document.createElement('li');
-        li.className = 'list-group-item d-flex justify-content-between align-items-center';
-        li.innerHTML = `<span>${s.nombre}</span> <i class="fa fa-trash text-danger" onclick="borrarSocio('${s.id}')"></i>`;
+        li.className = 'list-group-item d-flex justify-content-between align-items-center small';
+        li.innerHTML = `<b>${s.nombre}</b> <i class="fa fa-trash text-danger" style="cursor:pointer" onclick="borrarSocio('${s.id}')"></i>`;
         lista.appendChild(li);
     });
 }
