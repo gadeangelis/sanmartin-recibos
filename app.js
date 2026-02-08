@@ -29,11 +29,15 @@ function mostrarConfirmacion(mensaje, accionConfirmada) {
     mensajeTxt.innerText = mensaje;
     modal.style.display = 'flex';
 
-    // Si la acción es vacía, es solo un aviso (ocultamos cancelar)
-    btnCancelar.style.display = accionConfirmada.toString() === "() => {}" ? "none" : "inline-block";
+    // Si es solo un aviso (sin acción posterior), ocultamos el cancelar
+    if (!accionConfirmada || accionConfirmada.toString() === "() => {}") {
+        btnCancelar.style.display = 'none';
+    } else {
+        btnCancelar.style.display = 'inline-block';
+    }
 
     btnConfirmar.onclick = () => { 
-        accionConfirmada(); 
+        if(accionConfirmada) accionConfirmada(); 
         modal.style.display = 'none'; 
     };
     btnCancelar.onclick = () => { 
@@ -62,14 +66,12 @@ let mostrarHistorial = false;
 
 // --- CARGA DE DATOS ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Sincronizar Socios
     db.ref('socios').on('value', (snapshot) => {
         socios = [];
         snapshot.forEach((child) => { socios.push({ id: child.key, ...child.val() }); });
         actualizarListaSociosUI();
     });
 
-    // Sincronizar Historial
     db.ref('historial').on('value', (snapshot) => {
         historial = [];
         snapshot.forEach((child) => { historial.push({ id: child.key, ...child.val() }); });
@@ -123,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.reset();
     });
 
-    // --- AQUÍ ESTÁ EL CAMBIO: FUNCIÓN PARA EL BOTÓN DE SOCIOS ---
+    // --- GUARDADO DE SOCIOS ---
     const btnGuardar = document.getElementById('btnGuardarSocio');
     if(btnGuardar) {
         btnGuardar.onclick = () => {
@@ -135,17 +137,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if(n) {
                 db.ref('socios').push({ nombre: n, categoria: c })
                 .then(() => {
-                    nInput.value = ''; // <--- ESTO ES LO QUE BUSCÁS
-                    alert("Socio guardado correctamente");
+                    nInput.value = ''; 
+                    mostrarConfirmacion("Socio " + n + " guardado correctamente.", () => {
+                        const modalSocio = document.getElementById('modalSocio');
+                        const modalBS = bootstrap.Modal.getInstance(modalSocio);
+                        if (modalBS) modalBS.hide();
+                    });
                 });
             } else {
-                alert("Por favor, ingrese un nombre");
+                mostrarConfirmacion("Por favor, ingresá un nombre.", () => {});
             }
         };
     }
+});
 
 // --- FUNCIONES DE APOYO ---
-
 function enviarWA(id) {
     const reg = historial.find(h => h.id === id);
     if (!reg) return;
