@@ -1,9 +1,9 @@
 const CLAVE_CORRECTA = "2026";
 
-// Seguridad
+// SEGURIDAD
 function verificarClave() {
-    const pass = document.getElementById('input-clave').value;
-    if (pass === CLAVE_CORRECTA) {
+    const input = document.getElementById('input-clave').value;
+    if (input === CLAVE_CORRECTA) {
         sessionStorage.setItem('accesoPermitido', 'true');
         document.getElementById('pantalla-login').style.display = 'none';
     } else {
@@ -13,19 +13,19 @@ function verificarClave() {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('accesoPermitido') === 'true') {
-        document.getElementById('pantalla-login').style.display = 'none';
+        const p = document.getElementById('pantalla-login');
+        if(p) p.style.display = 'none';
     }
 });
 
-// Modal Personalizado Inteligente
+// MODAL PERSONALIZADO
 function mostrarConfirmacion(mensaje, accionConfirmada) {
     const modal = document.getElementById('modal-confirmacion');
     const msgTxt = document.getElementById('modal-mensaje');
     const btnConf = document.getElementById('btn-confirmar');
     const btnCanc = document.getElementById('btn-cancelar');
     
-    // Si el mensaje dice "correctamente" o "Socio", es un aviso de éxito (un solo botón)
-    const esExito = mensaje.includes("correctamente") || mensaje.includes("Socio guardado");
+    const esExito = mensaje.includes("correctamente") || mensaje.includes("guardado");
     
     msgTxt.innerText = mensaje;
     btnConf.innerText = esExito ? "Aceptar" : "Eliminar";
@@ -33,15 +33,11 @@ function mostrarConfirmacion(mensaje, accionConfirmada) {
     btnCanc.style.display = esExito ? 'none' : 'inline-block';
     
     modal.style.display = 'flex';
-
-    btnConf.onclick = () => { 
-        if(accionConfirmada) accionConfirmada(); 
-        modal.style.display = 'none'; 
-    };
+    btnConf.onclick = () => { if(accionConfirmada) accionConfirmada(); modal.style.display = 'none'; };
     btnCanc.onclick = () => { modal.style.display = 'none'; };
 }
 
-// FIREBASE
+// CONFIGURACIÓN FIREBASE
 const firebaseConfig = {
     apiKey: "AIzaSyALepfLTXEL3w-BRpzrRwFCS5-A-Varu4o",
     authDomain: "recibos-san-martin.firebaseapp.com",
@@ -54,9 +50,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let socios = [], historial = [], numeroFolio = 1;
+let socios = [], historial = [], numeroFolio = 1, mostrarHistorial = false;
 
-// Sincronización
+// SINCRONIZACIÓN
 db.ref('socios').on('value', snap => {
     socios = [];
     snap.forEach(c => { socios.push({id:c.key, ...c.val()}); });
@@ -69,10 +65,10 @@ db.ref('historial').on('value', snap => {
     if(historial.length > 0) {
         numeroFolio = Math.max(...historial.map(h => parseInt(h.Nro_Folio) || 0)) + 1;
     }
-    actualizarTablaHistorial();
+    if(mostrarHistorial) actualizarTablaHistorial();
 });
 
-// Buscador
+// BUSCADOR
 const inputNombre = document.getElementById('nombre');
 const sug = document.getElementById('listaSugerencias');
 inputNombre.addEventListener('input', e => {
@@ -95,7 +91,7 @@ inputNombre.addEventListener('input', e => {
     } else sug.classList.add('d-none');
 });
 
-// Guardar Recibo
+// GUARDAR RECIBO
 document.getElementById('formCobro').onsubmit = (e) => {
     e.preventDefault();
     const hoy = new Date();
@@ -115,7 +111,7 @@ document.getElementById('formCobro').onsubmit = (e) => {
     });
 };
 
-// Guardar Socio
+// GUARDAR SOCIO
 document.getElementById('btnGuardarSocio').onclick = () => {
     const n = document.getElementById('nuevoSocioNombre').value.toUpperCase().trim();
     const c = document.getElementById('nuevoSocioCat').value;
@@ -123,26 +119,44 @@ document.getElementById('btnGuardarSocio').onclick = () => {
         db.ref('socios').push({nombre:n, categoria:c}).then(() => {
             document.getElementById('nuevoSocioNombre').value = '';
             mostrarConfirmacion("Socio guardado correctamente", () => {
-                const m = document.getElementById('modalSocios');
-                bootstrap.Modal.getInstance(m).hide();
+                bootstrap.Modal.getInstance(document.getElementById('modalSocios')).hide();
             });
         });
     }
 };
 
+// FUNCIONES HISTORIAL
+function cargarTodoElHistorial() { mostrarHistorial = true; actualizarTablaHistorial(); }
+function limpiarVistaHistorial() { mostrarHistorial = false; document.getElementById('tablaHistorialBody').innerHTML = ''; }
+
 function actualizarTablaHistorial() {
     const body = document.getElementById('tablaHistorialBody');
+    const filtro = document.getElementById('filtroHistorial').value.toLowerCase();
     if(!body) return;
     body.innerHTML = '';
+    if(!mostrarHistorial && filtro === "") return;
+
     [...historial].reverse().forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${r.Nro_Folio}</td><td>${r.Fecha}</td><td>${r.Jugador}</td><td>$${r.Importe}</td>
-        <td><button class="btn btn-sm btn-outline-danger border-0" onclick="borrarRecibo('${r.id}')">×</button></td>`;
-        body.appendChild(tr);
+        if(r.Jugador.toLowerCase().includes(filtro)) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${r.Nro_Folio}</td>
+                <td><small>${r.Fecha}</small></td>
+                <td><b>${r.Jugador}</b></td>
+                <td>$${r.Importe}</td>
+                <td>
+                    <div class="d-flex gap-1 justify-content-center">
+                        <button class="btn btn-sm btn-primary" onclick="reimprimirUno('${r.id}')"><i class="fa fa-print"></i></button>
+                        <button class="btn btn-sm btn-success" onclick="compartirWhatsApp('${r.id}')"><i class="fab fa-whatsapp"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="borrarRecibo('${r.id}')"><i class="fa fa-trash"></i></button>
+                    </div>
+                </td>`;
+            body.appendChild(tr);
+        }
     });
 }
 
-function imprimirRecibo(d) {
+function llenarCamposRecibo(d) {
     document.getElementById('r-folio').innerText = d.Nro_Folio;
     document.getElementById('r-fecha').innerText = d.Fecha;
     document.getElementById('r-nombre').innerText = d.Jugador;
@@ -151,21 +165,64 @@ function imprimirRecibo(d) {
     document.getElementById('r-concepto').innerText = d.Concepto;
     document.getElementById('r-pago').innerText = d.Metodo_Pago;
     document.getElementById('r-total').innerText = d.Importe;
+}
+
+function imprimirRecibo(d) {
+    llenarCamposRecibo(d);
     const area = document.getElementById('areaRecibo');
     area.style.display = 'block';
     setTimeout(() => { window.print(); area.style.display = 'none'; }, 500);
 }
 
+function reimprimirUno(id) {
+    const r = historial.find(h => h.id === id);
+    if(r) imprimirRecibo(r);
+}
+
+// WHATSAPP CON IMAGEN
+async function compartirWhatsApp(id) {
+    const r = historial.find(h => h.id === id);
+    if (!r) return;
+
+    llenarCamposRecibo(r);
+    const area = document.getElementById('areaRecibo');
+    area.style.display = 'block';
+
+    try {
+        const canvas = await html2canvas(area, { scale: 2, useCORS: true });
+        area.style.display = 'none';
+        
+        canvas.toBlob(async (blob) => {
+            const file = new File([blob], `Recibo_${r.Nro_Folio}.png`, { type: 'image/png' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'Recibo A.C.S.M',
+                    text: `Recibo de ${r.Jugador} - Folio ${r.Nro_Folio}`
+                });
+            } else {
+                const msj = `*RECIBO A.C.S.M*%0ASocio: ${r.Jugador}%0AFolio: ${r.Nro_Folio}%0AImporte: $${r.Importe}`;
+                window.open(`https://wa.me/?text=${msj}`, '_blank');
+            }
+        });
+    } catch (err) {
+        area.style.display = 'none';
+        console.error(err);
+    }
+}
+
 function borrarRecibo(id) { mostrarConfirmacion("¿Eliminar este recibo?", () => db.ref('historial').child(id).remove()); }
-function borrarSocio(id) { mostrarConfirmacion("¿Eliminar socio definitivamente?", () => db.ref('socios').child(id).remove()); }
+function borrarSocio(id) { mostrarConfirmacion("¿Eliminar socio?", () => db.ref('socios').child(id).remove()); }
 
 function actualizarListaSociosUI() {
     const lista = document.getElementById('listaSociosGuardados');
+    if(!lista) return;
     lista.innerHTML = '';
     socios.sort((a,b)=>a.nombre.localeCompare(b.nombre)).forEach(s => {
         const li = document.createElement('li');
         li.className = 'list-group-item d-flex justify-content-between align-items-center small';
-        li.innerHTML = `${s.nombre} (${s.categoria}) <i class="fa fa-trash text-danger" onclick="borrarSocio('${s.id}')" style="cursor:pointer"></i>`;
+        li.innerHTML = `<span><b>${s.nombre}</b> <small>(${s.categoria})</small></span> 
+        <i class="fa fa-trash text-danger" onclick="borrarSocio('${s.id}')" style="cursor:pointer"></i>`;
         lista.appendChild(li);
     });
 }
@@ -174,5 +231,5 @@ function exportarExcel() {
     const ws = XLSX.utils.json_to_sheet(historial);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pagos");
-    XLSX.writeFile(wb, "Cobranza_SMH.xlsx");
+    XLSX.writeFile(wb, "Reporte_San_Martin.xlsx");
 }
