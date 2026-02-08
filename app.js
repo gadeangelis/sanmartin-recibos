@@ -25,10 +25,20 @@ function mostrarConfirmacion(mensaje, accionConfirmada) {
     const mensajeTxt = document.getElementById('modal-mensaje');
     const btnConfirmar = document.getElementById('btn-confirmar');
     const btnCancelar = document.getElementById('btn-cancelar');
+    
     mensajeTxt.innerText = mensaje;
     modal.style.display = 'flex';
-    btnConfirmar.onclick = () => { accionConfirmada(); modal.style.display = 'none'; };
-    btnCancelar.onclick = () => { modal.style.display = 'none'; };
+
+    // Si la acción es vacía, es solo un aviso (ocultamos cancelar)
+    btnCancelar.style.display = accionConfirmada.toString() === "() => {}" ? "none" : "inline-block";
+
+    btnConfirmar.onclick = () => { 
+        accionConfirmada(); 
+        modal.style.display = 'none'; 
+    };
+    btnCancelar.onclick = () => { 
+        modal.style.display = 'none'; 
+    };
 }
 
 // --- CONFIGURACIÓN DE FIREBASE ---
