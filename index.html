@@ -13,6 +13,10 @@
         .card-formulario { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         #listaSugerencias { z-index: 2000; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ddd; }
         
+        /* SEGURIDAD EN BOTONES HISTORIAL */
+        .acciones-container { display: flex; gap: 25px; justify-content: center; min-width: 200px; padding: 5px; }
+        .btn-separado-borrar { margin-left: 35px !important; }
+
         /* FORMATO RECIBO */
         #areaRecibo { width: 450px; background: white; border: 3px solid var(--rojo-club); padding: 25px; display: none; margin: 0 auto; position: relative; }
         .logo-recibo { width: 100px; height: auto; }
@@ -22,32 +26,19 @@
         .valor { font-weight: bold; text-transform: uppercase; font-size: 0.95rem; color: #333; }
         .importe-box { border: 2px solid var(--rojo-club); padding: 10px; margin-top: 15px; text-align: center; background-color: #f8fff9 !important; }
         .importe-box h3 { margin: 0; color: var(--rojo-club); font-weight: 900; }
-        .redes-footer { text-align: center; margin-top: 15px; font-weight: bold; font-size: 0.75rem; color: #555; }
+        
+        /* REDES SOCIALES PRO */
+        .redes-footer { text-align: center; margin-top: 15px; font-weight: bold; font-size: 0.85rem; color: #444; }
+        .fa-instagram { 
+            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        }
+        .fa-facebook { color: #1877F2; }
 
         @media print { 
             .no-print, .modal, .modal-backdrop, #pantalla-login, #modal-confirmacion { display: none !important; } 
             #areaRecibo { display: block !important; width: 100% !important; border: 3px solid var(--rojo-club) !important; position: absolute; top: 0; left: 0; } 
         }
-
-        /* Mejora para evitar toques accidentales en móvil */
-.acciones-container {
-    display: flex;
-    gap: 20px; /* Espacio amplio entre botones */
-    justify-content: center;
-    min-width: 160px; /* Fuerza el ancho para activar el scroll */
-    padding: 5px;
-}
-
-.table-responsive {
-    overflow-x: auto; /* Activa el scroll horizontal */
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Espacio extra solo para el botón de borrar */
-.btn-separado-borrar {
-    margin-left: 30px; 
-    border: 1px solid #dc3545;
-}
     </style>
     <link rel="manifest" href="manifest.json">
 </head>
@@ -62,7 +53,7 @@
 </div>
 
 <div id="modal-confirmacion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
-    <div style="background:white; padding:30px; border-radius:15px; text-align:center; width: 90%; max-width:320px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+    <div style="background:white; padding:30px; border-radius:15px; text-align:center; width: 90%; max-width:320px; shadow: 0 4px 15px rgba(0,0,0,0.3);">
         <h4 id="modal-titulo" style="color:var(--rojo-club); font-weight: bold;">San Martín Hockey</h4>
         <p id="modal-mensaje" style="color:#444; margin: 20px 0;"></p>
         <div class="d-flex gap-2">
@@ -81,19 +72,15 @@
         <form id="formCobro">
             <div class="mb-3 position-relative">
                 <label class="form-label small fw-bold">JUGADOR</label>
-                <div class="input-group shadow-sm">
+                <div class="input-group">
                     <input type="text" id="nombre" class="form-control" placeholder="Buscar..." autocomplete="off" required>
                     <button class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#modalSocios"><i class="fa fa-user-plus"></i></button>
                 </div>
                 <ul id="listaSugerencias" class="list-group position-absolute w-100 d-none shadow"></ul>
             </div>
             <div class="row">
-                <div class="col-6 mb-3">
-                    <label class="form-label small fw-bold">CATEGORÍA</label>
-                    <input type="text" id="categoria" class="form-control bg-light" readonly>
-                </div>
-                <div class="col-6 mb-3">
-                    <label class="form-label small fw-bold">MES</label>
+                <div class="col-6 mb-3"><label class="form-label small fw-bold">CATEGORÍA</label><input type="text" id="categoria" class="form-control bg-light" readonly></div>
+                <div class="col-6 mb-3"><label class="form-label small fw-bold">MES</label>
                     <select id="mes" class="form-select">
                         <option>ENERO</option><option>FEBRERO</option><option>MARZO</option>
                         <option>ABRIL</option><option selected>MAYO</option><option>JUNIO</option>
@@ -102,8 +89,7 @@
                     </select>
                 </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label small fw-bold">CONCEPTO</label>
+            <div class="mb-3"><label class="form-label small fw-bold">CONCEPTO</label>
                 <select id="concepto" class="form-select">
                     <option>CUOTA DEPORTIVA</option><option>SEGURO</option>
                     <option>LICENCIA</option><option>INSCRIPCION</option>
@@ -116,9 +102,7 @@
             <button type="submit" class="btn btn-danger w-100 fw-bold py-3 mt-2 shadow">GENERAR E IMPRIMIR</button>
         </form>
         <hr>
-        <button type="button" class="btn btn-outline-dark w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#modalHistorial">
-            <i class="fa fa-search me-2"></i>BUSCADOR Y REPORTES
-        </button>
+        <button type="button" class="btn btn-outline-dark w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#modalHistorial"><i class="fa fa-search me-2"></i>BUSCADOR Y REPORTES</button>
     </div>
 </div>
 
@@ -134,9 +118,8 @@
                     <option>INFANTIL</option><option>PRE CADETE</option><option>CADETE</option>
                     <option>PRE JUVENIL</option><option>JUVENIL</option><option>PRE JUNIOR</option><option>JUNIOR</option>
                 </select>
-                <button class="btn btn-danger w-100 fw-bold" id="btnGuardarSocio">GUARDAR EN BASE DE DATOS</button>
-                <hr>
-                <ul id="listaSociosGuardados" class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;"></ul>
+                <button class="btn btn-danger w-100 fw-bold" id="btnGuardarSocio">GUARDAR SOCIO</button>
+                <hr><ul id="listaSociosGuardados" class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;"></ul>
             </div>
         </div>
     </div>
@@ -148,16 +131,12 @@
             <div class="modal-header bg-dark text-white"><h5>Historial de Cobros</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
                 <div class="d-flex gap-2 mb-3">
-                    <input type="text" id="filtroHistorial" class="form-control" placeholder="Escriba nombre para filtrar..." oninput="actualizarTablaHistorial()">
+                    <input type="text" id="filtroHistorial" class="form-control" placeholder="Escriba nombre..." oninput="actualizarTablaHistorial()">
                     <button class="btn btn-primary text-nowrap" onclick="cargarTodoElHistorial()">Ver Todos</button>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-sm table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th>Folio</th><th>Fecha</th><th>Nombre</th><th>Total</th><th class="text-center">Acciones</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Folio</th><th>Fecha</th><th>Nombre</th><th>Total</th><th class="text-center">Acciones (Deslice)</th></tr></thead>
                         <tbody id="tablaHistorialBody"></tbody>
                     </table>
                 </div>
@@ -186,9 +165,9 @@
     <div class="linea-dato"><span class="etiqueta">Detalle</span><span class="valor" id="r-concepto"></span></div>
     <div class="linea-dato"><span class="etiqueta">Medio de Pago</span><span class="valor" id="r-pago"></span></div>
     <div class="importe-box"><h3>TOTAL: $ <span id="r-total"></span></h3></div>
-    <div class="redes-footer">
-        <span><i class="fab fa-instagram"></i> hockeypatinsanmartin</span><br>
-        <span><i class="fab fa-facebook"></i> HockeySanMartin</span>
+    <div class="redes-footer mt-4 border-top pt-3">
+        <span class="mx-2"><i class="fab fa-instagram"></i> hockeypatinsanmartin</span><br>
+        <span class="mx-2"><i class="fab fa-facebook"></i> HockeySanMartin</span>
     </div>
 </div>
 

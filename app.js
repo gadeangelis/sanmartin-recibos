@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// MODAL PERSONALIZADO
+// MODAL INTELIGENTE
 function mostrarConfirmacion(mensaje, accionConfirmada) {
     const modal = document.getElementById('modal-confirmacion');
     const msgTxt = document.getElementById('modal-mensaje');
@@ -37,7 +37,7 @@ function mostrarConfirmacion(mensaje, accionConfirmada) {
     btnCanc.onclick = () => { modal.style.display = 'none'; };
 }
 
-// CONFIGURACIÓN FIREBASE
+// FIREBASE
 const firebaseConfig = {
     apiKey: "AIzaSyALepfLTXEL3w-BRpzrRwFCS5-A-Varu4o",
     authDomain: "recibos-san-martin.firebaseapp.com",
@@ -91,7 +91,7 @@ inputNombre.addEventListener('input', e => {
     } else sug.classList.add('d-none');
 });
 
-// GUARDAR RECIBO
+// GUARDAR
 document.getElementById('formCobro').onsubmit = (e) => {
     e.preventDefault();
     const hoy = new Date();
@@ -111,7 +111,6 @@ document.getElementById('formCobro').onsubmit = (e) => {
     });
 };
 
-// GUARDAR SOCIO
 document.getElementById('btnGuardarSocio').onclick = () => {
     const n = document.getElementById('nuevoSocioNombre').value.toUpperCase().trim();
     const c = document.getElementById('nuevoSocioCat').value;
@@ -146,15 +145,9 @@ function actualizarTablaHistorial() {
                 <td>$${r.Importe}</td>
                 <td>
                     <div class="acciones-container">
-                        <button class="btn btn-primary" onclick="reimprimirUno('${r.id}')">
-                            <i class="fa fa-print"></i>
-                        </button>
-                        <button class="btn btn-success" onclick="compartirWhatsApp('${r.id}')">
-                            <i class="fab fa-whatsapp"></i>
-                        </button>
-                        <button class="btn btn-outline-danger btn-separado-borrar" onclick="borrarRecibo('${r.id}')">
-                            <i class="fa fa-trash"></i>
-                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="reimprimirUno('${r.id}')"><i class="fa fa-print"></i></button>
+                        <button class="btn btn-sm btn-success" onclick="compartirWhatsApp('${r.id}')"><i class="fab fa-whatsapp"></i></button>
+                        <button class="btn btn-sm btn-outline-danger btn-separado-borrar" onclick="borrarRecibo('${r.id}')"><i class="fa fa-trash"></i></button>
                     </div>
                 </td>`;
             body.appendChild(tr);
@@ -185,36 +178,25 @@ function reimprimirUno(id) {
     if(r) imprimirRecibo(r);
 }
 
-// WHATSAPP CON IMAGEN
+// WA CON IMAGEN
 async function compartirWhatsApp(id) {
     const r = historial.find(h => h.id === id);
     if (!r) return;
-
     llenarCamposRecibo(r);
     const area = document.getElementById('areaRecibo');
     area.style.display = 'block';
-
     try {
         const canvas = await html2canvas(area, { scale: 2, useCORS: true });
         area.style.display = 'none';
-        
         canvas.toBlob(async (blob) => {
             const file = new File([blob], `Recibo_${r.Nro_Folio}.png`, { type: 'image/png' });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: 'Recibo A.C.S.M',
-                    text: `Recibo de ${r.Jugador} - Folio ${r.Nro_Folio}`
-                });
+                await navigator.share({ files: [file], title: 'Recibo ACSM', text: `Recibo de ${r.Jugador}` });
             } else {
-                const msj = `*RECIBO A.C.S.M*%0ASocio: ${r.Jugador}%0AFolio: ${r.Nro_Folio}%0AImporte: $${r.Importe}`;
-                window.open(`https://wa.me/?text=${msj}`, '_blank');
+                window.open(`https://wa.me/?text=*RECIBO ACSM*%0ASocio: ${r.Jugador}%0AFolio: ${r.Nro_Folio}`, '_blank');
             }
         });
-    } catch (err) {
-        area.style.display = 'none';
-        console.error(err);
-    }
+    } catch (e) { area.style.display = 'none'; }
 }
 
 function borrarRecibo(id) { mostrarConfirmacion("¿Eliminar este recibo?", () => db.ref('historial').child(id).remove()); }
@@ -237,5 +219,5 @@ function exportarExcel() {
     const ws = XLSX.utils.json_to_sheet(historial);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pagos");
-    XLSX.writeFile(wb, "Reporte_San_Martin.xlsx");
+    XLSX.writeFile(wb, "Reporte_ACSM.xlsx");
 }
