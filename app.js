@@ -145,10 +145,16 @@ function actualizarTablaHistorial() {
                 <td><b>${r.Jugador}</b></td>
                 <td>$${r.Importe}</td>
                 <td>
-                    <div class="d-flex gap-1 justify-content-center">
-                        <button class="btn btn-sm btn-primary" onclick="reimprimirUno('${r.id}')"><i class="fa fa-print"></i></button>
-                        <button class="btn btn-sm btn-success" onclick="compartirWhatsApp('${r.id}')"><i class="fab fa-whatsapp"></i></button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="borrarRecibo('${r.id}')"><i class="fa fa-trash"></i></button>
+                    <div class="acciones-container">
+                        <button class="btn btn-primary" onclick="reimprimirUno('${r.id}')">
+                            <i class="fa fa-print"></i>
+                        </button>
+                        <button class="btn btn-success" onclick="compartirWhatsApp('${r.id}')">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        <button class="btn btn-outline-danger btn-separado-borrar" onclick="borrarRecibo('${r.id}')">
+                            <i class="fa fa-trash"></i>
+                        </button>
                     </div>
                 </td>`;
             body.appendChild(tr);
