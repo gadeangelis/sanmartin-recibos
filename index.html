@@ -2,166 +2,242 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>San Martín Hockey - Recibos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>A.C.S.M - Gestión de Recibos</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        :root { --primary: #003366; --secondary: #00509d; }
-        body { background: #eef2f7; font-family: 'Segoe UI', sans-serif; }
-        .navbar { background: var(--primary) !important; padding: 10px 0; }
-        .logo-club { height: 60px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
-        .card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
-        .card-header { background: var(--primary); color: white; border-radius: 15px 15px 0 0 !important; font-weight: bold; }
-        .btn-primary { background: var(--primary); border: none; }
-        .btn-success { background: #28a745; border: none; font-weight: bold; }
-        #areaRecibo { display: none; background: white; padding: 40px; }
-        @media print { body * { visibility: hidden; } #areaRecibo, #areaRecibo * { visibility: visible; } #areaRecibo { position: absolute; left: 0; top: 0; width: 100%; } }
+        :root { --rojo-club: #e22f2f; --negro-folio: #000000; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .container-main { padding: 15px; max-width: 600px; margin: auto; }
+        .card-formulario { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        /* Sugerencias de búsqueda */
+        #listaSugerencias { z-index: 2000; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ddd; }
+
+        /* --- FORMATO RECIBO --- */
+        #areaRecibo { 
+            width: 500px; 
+            background: white; 
+            border: 3px solid var(--rojo-club); 
+            padding: 30px; 
+            display: none; 
+            margin: 0 auto;
+        }
+        .logo-recibo { width: 130px; height: auto; }
+        .folio-numero { color: var(--negro-folio); font-weight: bold; font-size: 1.4rem; margin: 0; }
+        
+        .linea-dato { 
+            border-bottom: 1px dashed #ccc; 
+            margin-bottom: 15px; 
+            padding-bottom: 5px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end; 
+        }
+        .etiqueta { color: var(--rojo-club); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
+        .valor { font-weight: bold; text-transform: uppercase; font-size: 1rem; color: #333; }
+        
+        .importe-box { 
+            border: 2px solid var(--rojo-club); 
+            padding: 15px; 
+            margin-top: 25px; 
+            text-align: center; 
+            background-color: #f8fff9 !important; 
+        }
+        .importe-box h3 { margin: 0; color: var(--rojo-club); font-weight: 900; }
+        
+        .redes-footer { text-align: center; margin-top: 20px; font-weight: bold; font-size: 0.85rem; }
+        .fa-instagram { color: #E1306C; }
+        .fa-facebook { color: #1877F2; }
+
+        /* Ajustes de Impresión */
+        @media print {
+            .no-print, .modal, .modal-backdrop, #pantalla-login, #modal-confirmacion { display: none !important; }
+            body { background: white !important; }
+            #areaRecibo { 
+                display: block !important; 
+                width: 100% !important; 
+                border: 3px solid var(--rojo-club) !important;
+                margin: 0 !important;
+                position: absolute; top: 0; left: 0;
+            }
+        }
     </style>
+    <link rel="manifest" href="manifest.json">
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('App lista'))
+          .catch(err => console.log('Error sw', err));
+      }
+    </script>
 </head>
 <body>
 
-<nav class="navbar navbar-dark mb-4">
-    <div class="container d-flex justify-content-center align-items-center">
-        <img src="logo.png" alt="Logo San Martin" class="logo-club me-3">
-        <span class="navbar-brand mb-0 h1 text-uppercase">San Martín Hockey</span>
-    </div>
-</nav>
-
-<div id="pantalla-login" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--primary); z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
-    <img src="logo.png" alt="Logo" style="height: 120px; margin-bottom: 20px;">
-    <div class="card p-4 w-100" style="max-width:350px;">
-        <h4 class="text-center mb-4">Ingreso 2026</h4>
-        <input type="password" id="input-clave" class="form-control mb-3 text-center" placeholder="Clave">
-        <button class="btn btn-primary w-100" onclick="verificarClave()">INGRESAR</button>
-        <p id="error-msg" class="text-danger mt-2 text-center" style="display:none;">Clave incorrecta</p>
-    </div>
+<div id="pantalla-login" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#f8f9fa; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <img src="logo.png" alt="Logo" style="width:120px; margin-bottom:20px;">
+    <h2 style="color:#fc0505; font-family:sans-serif; font-weight: bold;">SAN MARTIN HOCKEY</h2>
+    <p style="font-family:sans-serif; color:#666;">Ingrese clave de acceso</p>
+    <input type="password" id="input-clave" style="padding:12px; border-radius:8px; border:1px solid #ccc; margin-bottom:15px; text-align:center; width: 200px; font-size: 1.2rem;">
+    <button onclick="verificarClave()" style="padding:10px 30px; background:#fc0505; color:white; border:none; border-radius:8px; cursor:pointer; font-weight: bold;">ENTRAR</button>
+    <p id="error-msg" style="color:red; font-family:sans-serif; display:none; margin-top:15px; font-weight: bold;">Clave incorrecta</p>
 </div>
 
-<div class="container mb-5">
-    <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header py-3 text-center">GENERAR NUEVO RECIBO</div>
-                <div class="card-body p-4">
-                    <form id="formCobro">
-                        <div class="mb-3 position-relative">
-                            <label class="form-label fw-bold">Nombre del Socio</label>
-                            <input type="text" id="nombre" class="form-control form-control-lg" autocomplete="off" required placeholder="Empiece a escribir para buscar...">
-                            <ul id="listaSugerencias" class="list-group d-none shadow" style="position:absolute; z-index:1000; width:100%;"></ul>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Categoría</label>
-                                <input type="text" id="categoria" class="form-control bg-light" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Mes</label>
-                                <select id="mes" class="form-select"></select>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Concepto</label>
-                            <input type="text" id="concepto" class="form-control" value="CUOTA SOCIAL">
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Importe $</label>
-                                <input type="number" id="total" class="form-control form-control-lg text-success fw-bold" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Forma de Pago</label>
-                                <select id="pago" class="form-select">
-                                    <option>EFECTIVO</option>
-                                    <option>TRANSFERENCIA</option>
-                                    <option>TARJETA</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-success btn-lg w-100 mt-3 shadow">
-                            <i class="fa fa-print me-2"></i>IMPRIMIR COMPROBANTE
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card p-3 mb-3">
-                <button class="btn btn-primary w-100 mb-2 py-3" data-bs-toggle="modal" data-bs-target="#modalSocio">
-                    <i class="fa fa-user-plus me-2"></i>NUEVO SOCIO
-                </button>
-                <button class="btn btn-outline-dark w-100" onclick="exportarExcel()">
-                    <i class="fa fa-file-excel me-2"></i>REPORTE EXCEL
-                </button>
-            </div>
-            <div class="card p-3 shadow-sm">
-                <h6 class="border-bottom pb-2">Últimos movimientos</h6>
-                <div id="tablaHistorialBody" style="max-height: 300px; overflow-y: auto;"></div>
-            </div>
+<div id="modal-confirmacion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
+    <div style="background:white; padding:30px; border-radius:15px; text-align:center; max-width:320px; font-family:sans-serif; shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <h3 style="color:#d9534f; margin-top:0; font-weight: bold;">¿Estás seguro?</h3>
+        <p id="modal-mensaje" style="color:#444; margin-bottom: 25px; line-height: 1.4;"></p>
+        <div style="display:flex; justify-content:space-between; gap: 10px;">
+            <button id="btn-cancelar" style="flex: 1; padding:12px; border:none; border-radius:8px; cursor:pointer; background:#eee; font-weight: bold;">Cancelar</button>
+            <button id="btn-confirmar" style="flex: 1; padding:12px; border:none; border-radius:8px; cursor:pointer; background:#d9534f; color:white; font-weight: bold;">Eliminar</button>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="modalSocio" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="fw-bold">Registrar Socio</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Nombre Completo</label>
-                    <input type="text" id="nuevoSocioNombre" class="form-control" placeholder="Ej: JUAN PEREZ">
+<div class="container-main no-print">
+    <div class="card card-formulario p-4 mb-4">
+        <h4 class="text-center fw-bold mb-4" style="color: var(--rojo-club);">A.C.S.M - Cobranza</h4>
+        <form id="formCobro">
+            <div class="mb-3 position-relative">
+                <label class="form-label small fw-bold">Jugador</label>
+                <div class="input-group">
+                    <input type="text" id="nombre" class="form-control" placeholder="Escriba para buscar..." autocomplete="off" required>
+                    <button class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#modalSocios"><i class="fa fa-users"></i></button>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Categoría</label>
-                    <select id="nuevoSocioCat" class="form-select">
-                        <option value="PRIMERA">PRIMERA</option>
-                        <option value="JUVENILES">JUVENILES</option>
-                        <option value="INFANTILES">INFANTILES</option>
-                        <option value="MAMIS">MAMIS</option>
-                        <option value="VETERANOS">VETERANOS</option>
-                        <option value="SOCIO ACTIVO">SOCIO ACTIVO</option>
+                <ul id="listaSugerencias" class="list-group position-absolute w-100 d-none"></ul>
+            </div>
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label small fw-bold">Categoría</label>
+                    <select id="categoria" class="form-select">
+                        <option>ESCUELITA INICIAL</option>
+                        <option>ESCUELA FEMENINO</option>
+                        <option>PROMO</option>
+                        <option>PRE MINI</option>
+                        <option>MINI</option>
+                        <option>PRE INFANTIL</option>
+                        <option>INFANTIL</option>
+                        <option>PRE CADETE</option>
+                        <option>CADETE</option>
+                        <option>PRE JUVENIL</option>
+                        <option>JUVENIL</option>
+                        <option>PRE JUNIOR</option>
+                        <option>JUNIOR</option>
                     </select>
                 </div>
-                <button class="btn btn-primary w-100" id="btnGuardarSocio">GUARDAR EN BASE DE DATOS</button>
-                <hr>
-                <p class="small text-muted">Socios en sistema:</p>
-                <ul id="listaSociosGuardados" class="list-group list-group-flush" style="max-height: 200px; overflow-y: auto;"></ul>
+                <div class="col-6 mb-3">
+                    <label class="form-label small fw-bold">Mes</label>
+                    <select id="mes" class="form-select">
+                        <option>ENERO</option><option>FEBRERO</option><option>MARZO</option>
+                        <option>ABRIL</option><option selected>MAYO</option><option>JUNIO</option>
+                        <option>JULIO</option><option>AGOSTO</option><option>SEPTIEMBRE</option>
+                        <option>OCTUBRE</option><option>NOVIEMBRE</option><option>DICIEMBRE</option>
+                    </select>
+                </div>
             </div>
-        </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Detalle</label>
+                <select id="concepto" class="form-select">
+                    <option>CUOTA DEPORTIVA</option><option>SEGURO</option>
+                    <option>LICENCIA</option><option>INSCRIPCION</option>
+                </select>
+            </div>
+            <div class="row">
+                <div class="col-6 mb-3"><label class="form-label small fw-bold">Importe $</label><input type="number" step="0.01" id="total" class="form-control" required></div>
+                <div class="col-6 mb-3"><label class="form-label small fw-bold">Pago</label><select id="pago" class="form-select"><option>EFECTIVO</option><option>MERCADO PAGO</option></select></div>
+            </div>
+            <button type="submit" class="btn btn-danger w-100 fw-bold py-2 mt-2">GENERAR E IMPRIMIR</button>
+        </form>
+        <hr>
+        <button type="button" class="btn btn-outline-primary w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#modalHistorial">
+            <i class="fa fa-search"></i> BUSCADOR Y REPORTES
+        </button>
     </div>
 </div>
 
-<div id="modal-confirmacion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:11000; justify-content:center; align-items:center; padding:20px;">
-    <div style="background:white; padding:30px; border-radius:20px; width:100%; max-width:350px; text-align:center;">
-        <h5 style="color:var(--primary); font-weight:bold;">SAN MARTÍN HOCKEY</h5>
-        <p id="modal-mensaje" class="my-4"></p>
-        <div class="d-flex gap-2">
-            <button id="btn-cancelar" class="btn btn-light border flex-grow-1">Cancelar</button>
-            <button id="btn-confirmar" class="btn btn-primary flex-grow-1">Aceptar</button>
+<div class="modal fade" id="modalSocios" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Registrar Socio</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <div class="mb-3 border-bottom pb-3">
+            <input type="text" id="nuevoSocioNombre" class="form-control mb-2" placeholder="Nombre Completo">
+            <select id="nuevoSocioCat" class="form-select mb-2">
+                <option>ESCUELITA INICIAL</option>
+                <option>ESCUELA FEMENINO</option>
+                <option>PROMO</option>
+                <option>PRE MINI</option>
+                <option>MINI</option>
+                <option>PRE INFANTIL</option>
+                <option>INFANTIL</option>
+                <option>PRE CADETE</option>
+                <option>CADETE</option>
+                <option>PRE JUVENIL</option>
+                <option>JUVENIL</option>
+                <option>PRE JUNIOR</option>
+                <option>JUNIOR</option>
+            </select>
+            <button class="btn btn-primary w-100" id="btnGuardarSocio">Guardar Socio</button>
         </div>
-    </div>
+        <ul id="listaSociosGuardados" class="list-group"></ul>
+    </div></div></div>
+</div>
+
+<div class="modal fade" id="modalHistorial" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Historial de Recibos</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <div class="d-flex gap-2 mb-3">
+            <input type="text" id="filtroHistorial" class="form-control" placeholder="Filtrar por nombre...">
+            <button class="btn btn-primary text-nowrap" onclick="cargarTodoElHistorial()">Ver Todos</button>
+        </div>
+        <div class="table-responsive"><table class="table table-sm table-hover"><thead><tr><th>N°</th><th>Fecha</th><th>Nombre</th><th>$</th><th>Acciones</th></tr></thead><tbody id="tablaHistorialBody"></tbody></table></div>
+        <div class="mt-3 d-flex justify-content-between">
+            <button class="btn btn-success" onclick="exportarExcel()"><i class="fa fa-file-excel"></i> Excel</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="limpiarVistaHistorial()">Limpiar Vista</button>
+        </div>
+    </div></div></div>
 </div>
 
 <div id="areaRecibo">
-    <div style="border: 3px solid #003366; padding: 20px; border-radius: 10px;">
-        <h1 style="text-align:center;">SAN MARTÍN HOCKEY</h1>
-        <hr>
-        <p><strong>FOLIO:</strong> <span id="r-folio"></span></p>
-        <p><strong>SOCIO:</strong> <span id="r-nombre"></span></p>
-        <p><strong>CATEGORIA:</strong> <span id="r-categoria"></span></p>
-        <p><strong>CONCEPTO:</strong> <span id="r-concepto"></span> (<span id="r-mes"></span>)</p>
-        <h2 style="text-align:right;">TOTAL: $<span id="r-total"></span></h2>
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <img src="logo.png" class="logo-recibo">
+        <div class="text-end">
+            <h2 class="m-0" style="color: var(--rojo-club); font-weight: 900;">RECIBO</h2>
+            <p class="folio-numero">N° <span id="r-folio"></span></p>
+            <p class="fw-bold m-0">A.C.S.M</p>
+        </div>
+    </div>
+    <div class="linea-dato"><span class="etiqueta">Fecha</span><span class="valor" id="r-fecha"></span></div>
+    <div class="linea-dato"><span class="etiqueta">Jugador</span><span class="valor" id="r-nombre"></span></div>
+    <div class="linea-dato"><span class="etiqueta">Categoría</span><span class="valor" id="r-categoria"></span></div>
+    <div class="linea-dato"><span class="etiqueta">Mes</span><span class="valor" id="r-mes"></span></div>
+    <div class="linea-dato"><span class="etiqueta">Detalle</span><span class="valor" id="r-concepto"></span></div>
+    <div class="linea-dato"><span class="etiqueta">Medio de Pago</span><span class="valor" id="r-pago"></span></div>
+    <div class="importe-box"><h3>TOTAL: $ <span id="r-total"></span></h3></div>
+    <div class="redes-footer">
+        <span class="mx-2"><i class="fab fa-instagram"></i> hockeypatinsanmartin</span>
+        <span class="mx-2"><i class="fab fa-facebook"></i> HockeySanMartin</span>
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<div id="modal-confirmacion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:20px; border-radius:10px; width:80%; max-width:300px; text-align:center;">
+        <h5 style="color:#003366;">San Martín Hockey</h5>
+        <hr>
+        <p id="modal-mensaje"></p>
+        <button id="btn-confirmar" class="btn btn-primary">Aceptar</button>
+        <button id="btn-cancelar" class="btn btn-secondary" style="display:none;">Cancelar</button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="app.js"></script>
+
 </body>
 </html>
