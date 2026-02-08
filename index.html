@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>A.H C.J - Gestión de Recibos</title>
+    <title>A.C.S.M - Gestión de Recibos</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root { --verde-club: #1a5928; --negro-folio: #000000; }
+        :root { --rojo-club: #e22f2f; --negro-folio: #000000; }
         body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
         .container-main { padding: 15px; max-width: 600px; margin: auto; }
         .card-formulario { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -21,7 +21,7 @@
         #areaRecibo { 
             width: 500px; 
             background: white; 
-            border: 3px solid var(--verde-club); 
+            border: 3px solid var(--rojo-club); 
             padding: 30px; 
             display: none; 
             margin: 0 auto;
@@ -37,17 +37,17 @@
             justify-content: space-between; 
             align-items: flex-end; 
         }
-        .etiqueta { color: var(--verde-club); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
+        .etiqueta { color: var(--rojo-club); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
         .valor { font-weight: bold; text-transform: uppercase; font-size: 1rem; color: #333; }
         
         .importe-box { 
-            border: 2px solid var(--verde-club); 
+            border: 2px solid var(--rojo-club); 
             padding: 15px; 
             margin-top: 25px; 
             text-align: center; 
             background-color: #f8fff9 !important; 
         }
-        .importe-box h3 { margin: 0; color: var(--verde-club); font-weight: 900; }
+        .importe-box h3 { margin: 0; color: var(--rojo-club); font-weight: 900; }
         
         .redes-footer { text-align: center; margin-top: 20px; font-weight: bold; font-size: 0.85rem; }
         .fa-instagram { color: #E1306C; }
@@ -60,7 +60,7 @@
             #areaRecibo { 
                 display: block !important; 
                 width: 100% !important; 
-                border: 3px solid var(--verde-club) !important;
+                border: 3px solid var(--rojo-club) !important;
                 margin: 0 !important;
                 position: absolute; top: 0; left: 0;
             }
@@ -80,10 +80,10 @@
 
 <div id="pantalla-login" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#f8f9fa; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
     <img src="logo.png" alt="Logo" style="width:120px; margin-bottom:20px;">
-    <h2 style="color:#008f39; font-family:sans-serif; font-weight: bold;">LA COLONIA HOCKEY</h2>
+    <h2 style="color:#fc0505; font-family:sans-serif; font-weight: bold;">SAN MARTIN HOCKEY</h2>
     <p style="font-family:sans-serif; color:#666;">Ingrese clave de acceso</p>
     <input type="password" id="input-clave" style="padding:12px; border-radius:8px; border:1px solid #ccc; margin-bottom:15px; text-align:center; width: 200px; font-size: 1.2rem;">
-    <button onclick="verificarClave()" style="padding:10px 30px; background:#008f39; color:white; border:none; border-radius:8px; cursor:pointer; font-weight: bold;">ENTRAR</button>
+    <button onclick="verificarClave()" style="padding:10px 30px; background:#fc0505; color:white; border:none; border-radius:8px; cursor:pointer; font-weight: bold;">ENTRAR</button>
     <p id="error-msg" style="color:red; font-family:sans-serif; display:none; margin-top:15px; font-weight: bold;">Clave incorrecta</p>
 </div>
 
@@ -100,13 +100,13 @@
 
 <div class="container-main no-print">
     <div class="card card-formulario p-4 mb-4">
-        <h4 class="text-center fw-bold mb-4" style="color: var(--verde-club);">A.H C.J - Cobranza</h4>
+        <h4 class="text-center fw-bold mb-4" style="color: var(--rojo-club);">A.C.S.M - Cobranza</h4>
         <form id="formCobro">
             <div class="mb-3 position-relative">
                 <label class="form-label small fw-bold">Jugador</label>
                 <div class="input-group">
                     <input type="text" id="nombre" class="form-control" placeholder="Escriba para buscar..." autocomplete="off" required>
-                    <button class="btn btn-success" type="button" data-bs-toggle="modal" data-bs-target="#modalSocios"><i class="fa fa-users"></i></button>
+                    <button class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#modalSocios"><i class="fa fa-users"></i></button>
                 </div>
                 <ul id="listaSugerencias" class="list-group position-absolute w-100 d-none"></ul>
             </div>
@@ -116,12 +116,17 @@
                     <select id="categoria" class="form-select">
                         <option>ESCUELITA INICIAL</option>
                         <option>ESCUELA FEMENINO</option>
-                        <option>PROMO MASCULINO</option>
+                        <option>PROMO</option>
+                        <option>PRE MINI</option>
                         <option>MINI</option>
+                        <option>PRE INFANTIL</option>
                         <option>INFANTIL</option>
+                        <option>PRE CADETE</option>
                         <option>CADETE</option>
+                        <option>PRE JUVENIL</option>
                         <option>JUVENIL</option>
-                        <option>MAMIS</option>
+                        <option>PRE JUNIOR</option>
+                        <option>JUNIOR</option>
                     </select>
                 </div>
                 <div class="col-6 mb-3">
@@ -145,7 +150,7 @@
                 <div class="col-6 mb-3"><label class="form-label small fw-bold">Importe $</label><input type="number" step="0.01" id="total" class="form-control" required></div>
                 <div class="col-6 mb-3"><label class="form-label small fw-bold">Pago</label><select id="pago" class="form-select"><option>EFECTIVO</option><option>MERCADO PAGO</option></select></div>
             </div>
-            <button type="submit" class="btn btn-success w-100 fw-bold py-2 mt-2">GENERAR E IMPRIMIR</button>
+            <button type="submit" class="btn btn-danger w-100 fw-bold py-2 mt-2">GENERAR E IMPRIMIR</button>
         </form>
         <hr>
         <button type="button" class="btn btn-outline-primary w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#modalHistorial">
@@ -162,12 +167,17 @@
             <select id="nuevoSocioCat" class="form-select mb-2">
                 <option>ESCUELITA INICIAL</option>
                 <option>ESCUELA FEMENINO</option>
-                <option>PROMO MASCULINO</option>
+                <option>PROMO</option>
+                <option>PRE MINI</option>
                 <option>MINI</option>
+                <option>PRE INFANTIL</option>
                 <option>INFANTIL</option>
+                <option>PRE CADETE</option>
                 <option>CADETE</option>
+                <option>PRE JUVENIL</option>
                 <option>JUVENIL</option>
-                <option>MAMIS</option>
+                <option>PRE JUNIOR</option>
+                <option>JUNIOR</option>
             </select>
             <button class="btn btn-primary w-100" id="btnGuardarSocio">Guardar Socio</button>
         </div>
@@ -194,9 +204,9 @@
     <div class="d-flex justify-content-between align-items-start mb-4">
         <img src="logo.png" class="logo-recibo">
         <div class="text-end">
-            <h2 class="m-0" style="color: var(--verde-club); font-weight: 900;">RECIBO</h2>
+            <h2 class="m-0" style="color: var(--rojo-club); font-weight: 900;">RECIBO</h2>
             <p class="folio-numero">N° <span id="r-folio"></span></p>
-            <p class="fw-bold m-0">A.H C.J</p>
+            <p class="fw-bold m-0">A.C.S.M</p>
         </div>
     </div>
     <div class="linea-dato"><span class="etiqueta">Fecha</span><span class="valor" id="r-fecha"></span></div>
@@ -207,8 +217,8 @@
     <div class="linea-dato"><span class="etiqueta">Medio de Pago</span><span class="valor" id="r-pago"></span></div>
     <div class="importe-box"><h3>TOTAL: $ <span id="r-total"></span></h3></div>
     <div class="redes-footer">
-        <span class="mx-2"><i class="fab fa-instagram"></i> hockey.lacolonia</span>
-        <span class="mx-2"><i class="fab fa-facebook"></i> lacoloniajuninhockeypatin</span>
+        <span class="mx-2"><i class="fab fa-instagram"></i> hockeypatinsanmartin</span>
+        <span class="mx-2"><i class="fab fa-facebook"></i> HockeySanMartin</span>
     </div>
 </div>
 

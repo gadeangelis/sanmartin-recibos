@@ -1,6 +1,6 @@
 {
   "short_name": "Recibos",
-  "name": "Recibos La Colonia",
+  "name": "Recibos San Martin",
   "icons": [
     {
       "src": "logo.png",
@@ -17,5 +17,5 @@
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "/",
-  "theme_color": "#008f39"
+  "theme_color": "#e22f2f"
 }

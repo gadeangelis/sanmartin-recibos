@@ -25,23 +25,21 @@ function mostrarConfirmacion(mensaje, accionConfirmada) {
     const mensajeTxt = document.getElementById('modal-mensaje');
     const btnConfirmar = document.getElementById('btn-confirmar');
     const btnCancelar = document.getElementById('btn-cancelar');
-
     mensajeTxt.innerText = mensaje;
     modal.style.display = 'flex';
-
     btnConfirmar.onclick = () => { accionConfirmada(); modal.style.display = 'none'; };
     btnCancelar.onclick = () => { modal.style.display = 'none'; };
 }
 
-// --- CONFIGURACIÓN FIREBASE ---
+// --- CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
-  apiKey: "AIzaSyDAYYgHTSq__yYhv405u0r-0Lr6XWsgH4M",
-  authDomain: "sistema-hockey.firebaseapp.com",
-  databaseURL: "https://sistema-hockey-default-rtdb.firebaseio.com",
-  projectId: "sistema-hockey",
-  storageBucket: "sistema-hockey.firebasestorage.app",
-  messagingSenderId: "773829482990",
-  appId: "1:773829482990:web:559b8f18f70af6d74896ff"
+  apiKey: "AIzaSyALepfLTXEL3w-BRpzrRwFCS5-A-Varu4o",
+  authDomain: "recibos-san-martin.firebaseapp.com",
+  databaseURL: "https://recibos-san-martin-default-rtdb.firebaseio.com",
+  projectId: "recibos-san-martin",
+  storageBucket: "recibos-san-martin.firebasestorage.app",
+  messagingSenderId: "757269810918",
+  appId: "1:757269810918:web:c8ab85d5e9a90a4ecfb527"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -52,24 +50,27 @@ let historial = [];
 let numeroFolio = 1;
 let mostrarHistorial = false;
 
-// --- LÓGICA DE LA APP ---
+// --- CARGA DE DATOS ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Sincronizar Socios
     db.ref('socios').on('value', (snapshot) => {
         socios = [];
         snapshot.forEach((child) => { socios.push({ id: child.key, ...child.val() }); });
         actualizarListaSociosUI();
     });
 
+    // Sincronizar Historial
     db.ref('historial').on('value', (snapshot) => {
         historial = [];
         snapshot.forEach((child) => { historial.push({ id: child.key, ...child.val() }); });
         if (historial.length > 0) {
-            const folios = historial.map(h => parseInt(h.Nro_Folio));
+            const folios = historial.map(h => parseInt(h.Nro_Folio) || 0);
             numeroFolio = Math.max(...folios) + 1;
         }
         if (mostrarHistorial) actualizarTablaHistorial();
     });
 
+    // Buscador de Socios
     const inputNombre = document.getElementById('nombre');
     const sugerencias = document.getElementById('listaSugerencias');
 
@@ -78,23 +79,22 @@ document.addEventListener('DOMContentLoaded', () => {
         sugerencias.innerHTML = '';
         if (val.length > 0) {
             const filtrados = socios.filter(s => s.nombre.toUpperCase().includes(val));
-            if (filtrados.length > 0) {
-                filtrados.forEach(s => {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item list-group-item-action';
-                    li.textContent = s.nombre;
-                    li.onclick = () => {
-                        inputNombre.value = s.nombre;
-                        document.getElementById('categoria').value = s.categoria;
-                        sugerencias.classList.add('d-none');
-                    };
-                    sugerencias.appendChild(li);
-                });
-                sugerencias.classList.remove('d-none');
-            }
+            filtrados.forEach(s => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item list-group-item-action';
+                li.textContent = s.nombre;
+                li.onclick = () => {
+                    inputNombre.value = s.nombre;
+                    document.getElementById('categoria').value = s.categoria;
+                    sugerencias.classList.add('d-none');
+                };
+                sugerencias.appendChild(li);
+            });
+            sugerencias.classList.toggle('d-none', filtrados.length === 0);
         } else { sugerencias.classList.add('d-none'); }
     });
 
+    // Formulario de Cobro
     document.getElementById('formCobro').addEventListener('submit', (e) => {
         e.preventDefault();
         const hoy = new Date();
@@ -113,80 +113,44 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.reset();
     });
 
-    document.getElementById('filtroHistorial').addEventListener('input', () => {
-        mostrarHistorial = true;
-        actualizarTablaHistorial();
-    });
+    // --- AQUÍ ESTÁ EL CAMBIO: FUNCIÓN PARA EL BOTÓN DE SOCIOS ---
+    const btnGuardar = document.getElementById('btnGuardarSocio');
+    if(btnGuardar) {
+        btnGuardar.onclick = () => {
+            const nInput = document.getElementById('nuevoSocioNombre');
+            const cInput = document.getElementById('nuevoSocioCat');
+            const n = nInput.value.toUpperCase().trim();
+            const c = cInput.value;
 
-    document.getElementById('btnGuardarSocio').onclick = () => {
-        const nInput = document.getElementById('nuevoSocioNombre');
-        const n = nInput.value.toUpperCase().trim();
-        const c = document.getElementById('nuevoSocioCat').value;
-        if(n) {
-            db.ref('socios').push({ nombre: n, categoria: c });
-            nInput.value = '';
-        }
-    };
+            if(n) {
+                db.ref('socios').push({ nombre: n, categoria: c })
+                .then(() => {
+                    nInput.value = ''; // Limpiar campo
+                    alert("Socio guardado correctamente");
+                });
+            } else {
+                alert("Por favor, ingrese un nombre");
+            }
+        };
+    }
 });
 
-// --- FUNCIONES DE ELIMINACIÓN (YA NO USAN CONFIRM) ---
-function borrarReciboUnico(id) { 
-    mostrarConfirmacion("¿Deseas eliminar este recibo de LA COLONIA?", () => {
-        db.ref('historial').child(id).remove();
-    });
-}
+// --- FUNCIONES DE APOYO ---
 
-function borrarSocio(id) { 
-    mostrarConfirmacion("¿Deseas eliminar a este socio del sistema?", () => {
-        db.ref('socios').child(id).remove();
-    });
-}
-
-// --- RESTO DE FUNCIONES ---
-function imprimirRecibo(datos) {
-    const modalH = document.getElementById('modalHistorial');
-    if(modalH) {
-        const instance = bootstrap.Modal.getInstance(modalH);
-        if (instance) instance.hide();
-    }
-    llenarCamposRecibo(datos);
-    const area = document.getElementById('areaRecibo');
-    setTimeout(() => {
-        area.style.display = 'block';
-        setTimeout(() => {
-            window.print();
-            window.onafterprint = () => { area.style.display = 'none'; };
-        }, 500);
-    }, 400);
-}
-
-async function enviarWA(id) {
-    const d = historial.find(h => h.id === id);
-    llenarCamposRecibo(d);
-    const area = document.getElementById('areaRecibo');
-    area.style.display = 'block';
-    try {
-        const canvas = await html2canvas(area, { scale: 3, useCORS: true });
-        const imgData = canvas.toDataURL("image/png");
-        const link = document.createElement('a');
-        link.download = `Recibo_${d.Nro_Folio}.png`;
-        link.href = imgData;
-        link.click();
-        area.style.display = 'none';
-        const msj = `*Recibo A.H C.J*%0A*Socio:* ${d.Jugador}%0A*Mes:* ${d.Mes}%0A*Concepto:* ${d.Concepto}%0A*Monto:* $${d.Importe}`;
-        window.open(`https://wa.me/?text=${msj}`, '_blank');
-    } catch (e) { area.style.display = 'none'; }
-}
-
-function llenarCamposRecibo(d) {
-    document.getElementById('r-folio').innerText = d.Nro_Folio;
-    document.getElementById('r-fecha').innerText = d.Fecha;
-    document.getElementById('r-nombre').innerText = d.Jugador;
-    document.getElementById('r-categoria').innerText = d.Categoria;
-    document.getElementById('r-mes').innerText = d.Mes;
-    document.getElementById('r-concepto').innerText = d.Concepto;
-    document.getElementById('r-pago').innerText = d.Metodo_Pago;
-    document.getElementById('r-total').innerText = parseFloat(d.Importe).toLocaleString('es-AR', {minimumFractionDigits:2});
+function enviarWA(id) {
+    const reg = historial.find(h => h.id === id);
+    if (!reg) return;
+    const msj = `*RECIBO DE PAGO - SAN MARTIN HOCKEY*%0A` +
+                `---------------------------------%0A` +
+                `*Folio:* ${reg.Nro_Folio}%0A` +
+                `*Fecha:* ${reg.Fecha}%0A` +
+                `*Socio:* ${reg.Jugador}%0A` +
+                `*Concepto:* ${reg.Concepto} (${reg.Mes})%0A` +
+                `*Monto:* $${reg.Importe}%0A` +
+                `*Pago:* ${reg.Metodo_Pago}%0A` +
+                `---------------------------------%0A` +
+                `_Gracias por tu pago_`;
+    window.open(`https://wa.me/?text=${msj}`, '_blank');
 }
 
 function actualizarTablaHistorial() {
@@ -203,10 +167,10 @@ function actualizarTablaHistorial() {
                 <td>${reg.Jugador}</td>
                 <td>$${reg.Importe}</td>
                 <td>
-                    <div class="d-flex gap-3">
-                        <button class="btn btn-sm btn-primary px-3" onclick="reimprimirUno('${reg.id}')"><i class="fa fa-print"></i></button>
-                        <button class="btn btn-sm btn-success px-3" onclick="enviarWA('${reg.id}')"><i class="fab fa-whatsapp"></i></button>
-                        <button class="btn btn-sm btn-outline-danger ms-2" onclick="borrarReciboUnico('${reg.id}')"><i class="fa fa-trash"></i></button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-primary" onclick="reimprimirUno('${reg.id}')"><i class="fa fa-print"></i></button>
+                        <button class="btn btn-sm btn-success" onclick="enviarWA('${reg.id}')"><i class="fab fa-whatsapp"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="borrarReciboUnico('${reg.id}')"><i class="fa fa-trash"></i></button>
                     </div>
                 </td>`;
             body.appendChild(tr);
@@ -214,9 +178,32 @@ function actualizarTablaHistorial() {
     });
 }
 
+function imprimirRecibo(datos) {
+    llenarCamposRecibo(datos);
+    const area = document.getElementById('areaRecibo');
+    area.style.display = 'block';
+    setTimeout(() => {
+        window.print();
+        area.style.display = 'none';
+    }, 500);
+}
+
+function llenarCamposRecibo(d) {
+    document.getElementById('r-folio').innerText = d.Nro_Folio;
+    document.getElementById('r-fecha').innerText = d.Fecha;
+    document.getElementById('r-nombre').innerText = d.Jugador;
+    document.getElementById('r-categoria').innerText = d.Categoria;
+    document.getElementById('r-mes').innerText = d.Mes;
+    document.getElementById('r-concepto').innerText = d.Concepto;
+    document.getElementById('r-pago').innerText = d.Metodo_Pago;
+    document.getElementById('r-total').innerText = parseFloat(d.Importe).toLocaleString('es-AR', {minimumFractionDigits:2});
+}
+
+function borrarReciboUnico(id) { mostrarConfirmacion("¿Eliminar recibo?", () => db.ref('historial').child(id).remove()); }
+function borrarSocio(id) { mostrarConfirmacion("¿Eliminar socio?", () => db.ref('socios').child(id).remove()); }
 function cargarTodoElHistorial() { mostrarHistorial = true; actualizarTablaHistorial(); }
-function limpiarVistaHistorial() { mostrarHistorial = false; document.getElementById('tablaHistorialBody').innerHTML = ''; }
 function reimprimirUno(id) { imprimirRecibo(historial.find(h => h.id === id)); }
+function limpiarVistaHistorial() { mostrarHistorial = false; document.getElementById('tablaHistorialBody').innerHTML = ''; }
 
 function exportarExcel() {
     const ws = XLSX.utils.json_to_sheet(historial);
@@ -229,11 +216,10 @@ function actualizarListaSociosUI() {
     const lista = document.getElementById('listaSociosGuardados');
     if(!lista) return;
     lista.innerHTML = '';
-    socios.forEach((s) => {
+    socios.forEach(s => {
         const li = document.createElement('li');
         li.className = 'list-group-item d-flex justify-content-between align-items-center small';
-        li.innerHTML = `<div><b>${s.nombre}</b><br><small>${s.categoria}</small></div> 
-                        <i class="fa fa-trash text-danger" style="cursor:pointer" onclick="borrarSocio('${s.id}')"></i>`;
+        li.innerHTML = `<b>${s.nombre}</b> <i class="fa fa-trash text-danger" style="cursor:pointer" onclick="borrarSocio('${s.id}')"></i>`;
         lista.appendChild(li);
     });
 }
