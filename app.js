@@ -216,8 +216,46 @@ function actualizarListaSociosUI() {
 }
 
 function exportarExcel() {
-    const ws = XLSX.utils.json_to_sheet(historial);
+    // 1. Mapeamos los datos para limpiar el ID, reordenar columnas y dar formato
+    const datosFormateados = historial.map(r => ({
+        "Nro_Folio": r.Nro_Folio,
+        "Fecha": r.Fecha,
+        "Jugador": r.Jugador,
+        "Categoria": r.Categoria,
+        "Concepto": r.Concepto,
+        "Mes": r.Mes,
+        "Importe": parseFloat(r.Importe), // Lo pasamos a número para que Excel pueda sumar
+        "Metodo_Pago": r.Metodo_Pago
+    }));
+
+    // 2. Creamos la hoja de cálculo
+    const ws = XLSX.utils.json_to_sheet(datosFormateados);
+
+    // 3. Aplicamos formato de moneda ($) a la columna G (Importe)
+    // Recorremos las celdas de la columna G (desde la fila 2 para saltar el encabezado)
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let i = range.s.r + 1; i <= range.e.r; ++i) {
+        const cellAddress = XLSX.utils.encode_cell({ r: i, c: 6 }); // c:6 es la columna G
+        if (!ws[cellAddress]) continue;
+        ws[cellAddress].t = 'n'; // Tipo número
+        ws[cellAddress].z = '"$ "#,##0.00'; // Formato moneda contable
+    }
+
+    // 4. Ajustamos anchos de columna para que no se vea todo apretado
+    ws['!cols'] = [
+        { wch: 10 }, // Nro_Folio
+        { wch: 12 }, // Fecha
+        { wch: 25 }, // Jugador
+        { wch: 15 }, // Categoria
+        { wch: 20 }, // Concepto
+        { wch: 12 }, // Mes
+        { wch: 12 }, // Importe
+        { wch: 15 }  // Metodo_Pago
+    ];
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Pagos");
-    XLSX.writeFile(wb, "Reporte_ACSM.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Cobranza_San_Martin");
+    
+    // 5. Descarga el archivo
+    XLSX.writeFile(wb, "Reporte_ACSM_Limpio.xlsx");
 }
