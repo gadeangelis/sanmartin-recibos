@@ -10,7 +10,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
             deferredPrompt.prompt();
             deferredPrompt = null;
         }
-    }, 5000); // Salta a los 5 segundos de entrar
+    }, 5000); 
 });
 
 // 2. SEGURIDAD
@@ -29,6 +29,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const p = document.getElementById('pantalla-login');
         if(p) p.style.display = 'none';
     }
+    
+    // INICIALIZAR EVENTOS DEL BUSCADOR AL CARGAR
+    const inputNombre = document.getElementById('nombre');
+    const sug = document.getElementById('listaSugerencias');
+
+    if(inputNombre) {
+        inputNombre.addEventListener('input', e => {
+            const val = e.target.value.toUpperCase();
+            sug.innerHTML = '';
+            if(val.length > 0) {
+                const filtrados = socios.filter(s => s.nombre.toUpperCase().includes(val));
+                filtrados.forEach(s => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item list-group-item-action';
+                    li.textContent = s.nombre;
+                    li.onclick = () => {
+                        inputNombre.value = s.nombre;
+                        document.getElementById('categoria').value = s.categoria;
+                        sug.classList.add('d-none');
+                    };
+                    sug.appendChild(li);
+                });
+                sug.classList.toggle('d-none', filtrados.length === 0);
+            } else sug.classList.add('d-none');
+        });
+    }
 });
 
 // 3. FIREBASE CONFIG
@@ -41,7 +67,9 @@ const firebaseConfig = {
     messagingSenderId: "757269810918",
     appId: "1:757269810918:web:c8ab85d5e9a90a4ecfb527"
 };
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.database();
 
 let socios = [], historial = [], numeroFolio = 1, mostrarHistorial = false;
@@ -62,7 +90,27 @@ db.ref('historial').on('value', snap => {
     if(mostrarHistorial) actualizarTablaHistorial();
 });
 
-// 5. LÓGICA DE EXCEL LIMPIO (REORDENADO Y SIN ID)
+// 5. GENERAR RECIBO (BOTON)
+document.getElementById('formCobro').onsubmit = (e) => {
+    e.preventDefault();
+    const hoy = new Date();
+    const d = {
+        Nro_Folio: numeroFolio.toString().padStart(4, '0'),
+        Fecha: `${hoy.getDate()}/${hoy.getMonth()+1}/${hoy.getFullYear()}`,
+        Jugador: document.getElementById('nombre').value.toUpperCase(),
+        Categoria: document.getElementById('categoria').value,
+        Mes: document.getElementById('mes').value,
+        Concepto: document.getElementById('concepto').value,
+        Importe: document.getElementById('total').value,
+        Metodo_Pago: document.getElementById('pago').value
+    };
+    db.ref('historial').push(d).then(() => { 
+        imprimirRecibo(d); 
+        e.target.reset(); 
+    });
+};
+
+// 6. EXCEL LIMPIO
 function exportarExcel() {
     const datosFormateados = historial.map(r => ({
         "Nro_Folio": r.Nro_Folio,
@@ -76,21 +124,18 @@ function exportarExcel() {
     }));
 
     const ws = XLSX.utils.json_to_sheet(datosFormateados);
-    
-    // Formato Moneda en Columna G
     const range = XLSX.utils.decode_range(ws['!ref']);
     for (let i = range.s.r + 1; i <= range.e.r; ++i) {
         const cell = ws[XLSX.utils.encode_cell({ r: i, c: 6 })];
         if (cell) { cell.t = 'n'; cell.z = '"$ "#,##0.00'; }
     }
-
     ws['!cols'] = [{wch:10},{wch:12},{wch:25},{wch:18},{wch:20},{wch:12},{wch:12},{wch:15}];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Cobranza");
     XLSX.writeFile(wb, "Reporte_ACSM_Final.xlsx");
 }
 
-// 6. HISTORIAL CON SEGURIDAD (SCROLL)
+// 7. HISTORIAL Y ACCIONES
 function actualizarTablaHistorial() {
     const body = document.getElementById('tablaHistorialBody');
     const filtro = document.getElementById('filtroHistorial').value.toLowerCase();
@@ -118,7 +163,7 @@ function actualizarTablaHistorial() {
     });
 }
 
-// 7. WHATSAPP CON IMAGEN
+// 8. WHATSAPP CON IMAGEN
 async function compartirWhatsApp(id) {
     const r = historial.find(h => h.id === id);
     if (!r) return;
@@ -131,7 +176,7 @@ async function compartirWhatsApp(id) {
         canvas.toBlob(async (blob) => {
             const file = new File([blob], `Recibo_${r.Nro_Folio}.png`, { type: 'image/png' });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({ files: [file], title: 'Recibo ACSM', text: `Adjuntamos recibo de ${r.Jugador}` });
+                await navigator.share({ files: [file], title: 'Recibo ACSM', text: `Recibo de ${r.Jugador}` });
             } else {
                 window.open(`https://wa.me/?text=*RECIBO ACSM*%0ASocio: ${r.Jugador}%0AFolio: ${r.Nro_Folio}`, '_blank');
             }
@@ -139,7 +184,7 @@ async function compartirWhatsApp(id) {
     } catch (e) { area.style.display = 'none'; }
 }
 
-// 8. FUNCIONES AUXILIARES
+// FUNCIONES DE APOYO
 function cargarTodoElHistorial() { mostrarHistorial = true; actualizarTablaHistorial(); }
 function limpiarVistaHistorial() { mostrarHistorial = false; document.getElementById('tablaHistorialBody').innerHTML = ''; }
 function llenarCamposRecibo(d) {
@@ -165,7 +210,6 @@ function reimprimirUno(id) {
 function borrarRecibo(id) { mostrarConfirmacion("¿Eliminar este recibo?", () => db.ref('historial').child(id).remove()); }
 function borrarSocio(id) { mostrarConfirmacion("¿Eliminar socio?", () => db.ref('socios').child(id).remove()); }
 
-// MODAL Y BUSCADOR (Igual al anterior para mantener estabilidad)
 function mostrarConfirmacion(mensaje, accionConfirmada) {
     const modal = document.getElementById('modal-confirmacion');
     const msgTxt = document.getElementById('modal-mensaje');
@@ -181,56 +225,6 @@ function mostrarConfirmacion(mensaje, accionConfirmada) {
     btnCanc.onclick = () => { modal.style.display = 'none'; };
 }
 
-inputNombre.addEventListener('input', e => {
-    const val = e.target.value.toUpperCase();
-    const sug = document.getElementById('listaSugerencias');
-    sug.innerHTML = '';
-    if(val.length > 0) {
-        const filtrados = socios.filter(s => s.nombre.toUpperCase().includes(val));
-        filtrados.forEach(s => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item list-group-item-action';
-            li.textContent = s.nombre;
-            li.onclick = () => {
-                inputNombre.value = s.nombre;
-                document.getElementById('categoria').value = s.categoria;
-                sug.classList.add('d-none');
-            };
-            sug.appendChild(li);
-        });
-        sug.classList.toggle('d-none', filtrados.length === 0);
-    } else sug.classList.add('d-none');
-});
-
-document.getElementById('formCobro').onsubmit = (e) => {
-    e.preventDefault();
-    const hoy = new Date();
-    const d = {
-        Nro_Folio: numeroFolio.toString().padStart(4, '0'),
-        Fecha: `${hoy.getDate()}/${hoy.getMonth()+1}/${hoy.getFullYear()}`,
-        Jugador: inputNombre.value.toUpperCase(),
-        Categoria: document.getElementById('categoria').value,
-        Mes: document.getElementById('mes').value,
-        Concepto: document.getElementById('concepto').value,
-        Importe: document.getElementById('total').value,
-        Metodo_Pago: document.getElementById('pago').value
-    };
-    db.ref('historial').push(d).then(() => { imprimirRecibo(d); e.target.reset(); });
-};
-
-document.getElementById('btnGuardarSocio').onclick = () => {
-    const n = document.getElementById('nuevoSocioNombre').value.toUpperCase().trim();
-    const c = document.getElementById('nuevoSocioCat').value;
-    if(n) {
-        db.ref('socios').push({nombre:n, categoria:c}).then(() => {
-            document.getElementById('nuevoSocioNombre').value = '';
-            mostrarConfirmacion("Socio guardado correctamente", () => {
-                bootstrap.Modal.getInstance(document.getElementById('modalSocios')).hide();
-            });
-        });
-    }
-};
-
 function actualizarListaSociosUI() {
     const lista = document.getElementById('listaSociosGuardados');
     if(!lista) return;
@@ -243,3 +237,17 @@ function actualizarListaSociosUI() {
         lista.appendChild(li);
     });
 }
+
+document.getElementById('btnGuardarSocio').onclick = () => {
+    const n = document.getElementById('nuevoSocioNombre').value.toUpperCase().trim();
+    const c = document.getElementById('nuevoSocioCat').value;
+    if(n) {
+        db.ref('socios').push({nombre:n, categoria:c}).then(() => {
+            document.getElementById('nuevoSocioNombre').value = '';
+            mostrarConfirmacion("Socio guardado correctamente", () => {
+                const m = bootstrap.Modal.getInstance(document.getElementById('modalSocios'));
+                if(m) m.hide();
+            });
+        });
+    }
+};
