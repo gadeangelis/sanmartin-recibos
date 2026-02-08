@@ -7,148 +7,156 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .navbar { background-color: #003366; }
-        .card { border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn-primary { background-color: #003366; border: none; }
-        #areaRecibo { display: none; background: white; padding: 20px; }
-        @media print {
-            body * { visibility: hidden; }
-            #areaRecibo, #areaRecibo * { visibility: visible; }
-            #areaRecibo { position: absolute; left: 0; top: 0; width: 100%; }
-        }
+        :root { --primary: #003366; --secondary: #00509d; --accent: #ffcc00; }
+        body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: var(--primary) !important; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .card { border: none; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); overflow: hidden; }
+        .card-header { background: var(--primary); color: white; font-weight: bold; text-align: center; border: none; }
+        .btn-primary { background: var(--primary); border: none; border-radius: 10px; padding: 10px 20px; transition: 0.3s; }
+        .btn-primary:hover { background: var(--secondary); transform: translateY(-2px); }
+        .btn-success { border-radius: 10px; padding: 12px; font-weight: bold; background: #28a745; border: none; }
+        .form-label { font-weight: 600; color: #444; }
+        .form-control, .form-select { border-radius: 10px; border: 1px solid #ddd; padding: 10px; }
+        #areaRecibo { display: none; background: white; padding: 40px; }
+        @media print { body * { visibility: hidden; } #areaRecibo, #areaRecibo * { visibility: visible; } #areaRecibo { position: absolute; left: 0; top: 0; width: 100%; } }
     </style>
 </head>
 <body>
 
 <nav class="navbar navbar-dark mb-4">
-    <div class="container">
-        <span class="navbar-brand mb-0 h1">SAN MARTIN HOCKEY</span>
+    <div class="container justify-content-center">
+        <span class="navbar-brand mb-0 h1"><i class="fa fa-hockey-puck me-2"></i>SAN MARTÍN HOCKEY</span>
     </div>
 </nav>
 
-<div id="pantalla-login" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
-    <h3 class="mb-4">Ingreso al Sistema</h3>
-    <input type="password" id="input-clave" class="form-control mb-2" placeholder="Clave de acceso" style="max-width:300px; text-align:center;">
-    <button class="btn btn-primary w-100" style="max-width:300px;" onclick="verificarClave()">ENTRAR</button>
-    <p id="error-msg" class="text-danger mt-2" style="display:none;">Clave incorrecta</p>
+<div id="pantalla-login" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--primary); z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
+    <div class="card p-4 w-100" style="max-width:350px;">
+        <h4 class="text-center mb-4" style="color:var(--primary)">Acceso Privado</h4>
+        <input type="password" id="input-clave" class="form-control mb-3 text-center" placeholder="Clave 2026">
+        <button class="btn btn-primary w-100" onclick="verificarClave()">INGRESAR</button>
+        <p id="error-msg" class="text-danger mt-2 text-center" style="display:none;">Clave incorrecta</p>
+    </div>
 </div>
 
 <div class="container mb-5">
-    <div class="row g-3">
-        <div class="col-md-8">
-            <div class="card p-4">
-                <form id="formCobro">
-                    <div class="mb-3">
-                        <label class="form-label">Socio / Jugador</label>
-                        <input type="text" id="nombre" class="form-control form-control-lg" autocomplete="off" required>
-                        <ul id="listaSugerencias" class="list-group d-none" style="position:absolute; z-index:1000; width:90%;"></ul>
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Categoría</label>
-                            <input type="text" id="categoria" class="form-control" readonly>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header py-3">NUEVO RECIBO DE PAGO</div>
+                <div class="card-body p-4">
+                    <form id="formCobro">
+                        <div class="mb-3 position-relative">
+                            <label class="form-label">Socio / Jugador</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-user"></i></span>
+                                <input type="text" id="nombre" class="form-control" autocomplete="off" required placeholder="Buscar nombre...">
+                            </div>
+                            <ul id="listaSugerencias" class="list-group d-none shadow" style="position:absolute; z-index:1000; width:100%;"></ul>
                         </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Mes</label>
-                            <select id="mes" class="form-select">
-                                <option>Enero</option><option>Febrero</option><option>Marzo</option>
-                                <option>Abril</option><option>Mayo</option><option>Junio</option>
-                                <option>Julio</option><option>Agosto</option><option>Septiembre</option>
-                                <option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
-                            </select>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Categoría</label>
+                                <input type="text" id="categoria" class="form-control bg-light" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Mes a Pagar</label>
+                                <select id="mes" class="form-select"></select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Concepto</label>
-                        <input type="text" id="concepto" class="form-control" value="CUOTA SOCIAL">
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Importe $</label>
-                            <input type="number" id="total" class="form-control form-control-lg" required>
+                        <div class="mb-3">
+                            <label class="form-label">Concepto</label>
+                            <input type="text" id="concepto" class="form-control" value="CUOTA SOCIAL">
                         </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Forma de Pago</label>
-                            <select id="pago" class="form-select">
-                                <option>EFECTIVO</option>
-                                <option>TRANSFERENCIA</option>
-                                <option>TARJETA</option>
-                            </select>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Importe $</label>
+                                <input type="number" id="total" class="form-control form-control-lg" required placeholder="0.00">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Método de Pago</label>
+                                <select id="pago" class="form-select">
+                                    <option>EFECTIVO</option>
+                                    <option>TRANSFERENCIA</option>
+                                    <option>TARJETA</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <button type="submit" class="btn btn-success btn-lg w-100"><i class="fa fa-print me-2"></i>GENERAR E IMPRIMIR</button>
-                </form>
+                        <button type="submit" class="btn btn-success btn-lg w-100 mt-3 shadow">
+                            <i class="fa fa-print me-2"></i>GENERAR RECIBO
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <button class="btn btn-outline-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#modalSocio">
-                <i class="fa fa-user-plus me-2"></i>NUEVO SOCIO
-            </button>
-            <button class="btn btn-outline-secondary w-100 mb-2" onclick="cargarTodoElHistorial()">
-                <i class="fa fa-history me-2"></i>VER HISTORIAL
-            </button>
-            <button class="btn btn-outline-success w-100" onclick="exportarExcel()">
-                <i class="fa fa-file-excel me-2"></i>EXPORTAR EXCEL
-            </button>
-            
-            <hr>
-            <div id="historialRapido" class="mt-3">
-                <h6>Últimos Movimientos</h6>
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <tbody id="tablaHistorialBody"></tbody>
-                    </table>
-                </div>
+        <div class="col-lg-4">
+            <div class="card p-3 mb-3">
+                <button class="btn btn-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#modalSocio">
+                    <i class="fa fa-user-plus me-2"></i>GESTIONAR SOCIOS
+                </button>
+                <button class="btn btn-outline-dark w-100 mb-2" onclick="cargarTodoElHistorial()">
+                    <i class="fa fa-list me-2"></i>HISTORIAL RECIENTE
+                </button>
+                <button class="btn btn-outline-success w-100" onclick="exportarExcel()">
+                    <i class="fa fa-file-excel me-2"></i>DESCARGAR EXCEL
+                </button>
+            </div>
+            <div class="card p-3" style="max-height: 400px; overflow-y: auto;">
+                <h6 class="border-bottom pb-2">Últimos Pagos</h6>
+                <div id="tablaHistorialBody"></div>
             </div>
         </div>
     </div>
 </div>
 
 <div class="modal fade" id="modalSocio" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header"><h5>Nuevo Socio</h5></div>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:20px;">
+            <div class="modal-header border-0"><h5 class="fw-bold">Gestión de Socios</h5></div>
             <div class="modal-body">
-                <input type="text" id="nuevoSocioNombre" class="form-control mb-2" placeholder="Nombre completo">
-                <input type="text" id="nuevoSocioCat" class="form-control" placeholder="Categoría">
-                <hr>
-                <h6>Socios registrados:</h6>
-                <ul id="listaSociosGuardados" class="list-group" style="max-height: 200px; overflow-y: auto;"></ul>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary w-100" id="btnGuardarSocio">GUARDAR SOCIO</button>
+                <div class="bg-light p-3 rounded mb-3">
+                    <input type="text" id="nuevoSocioNombre" class="form-control mb-2" placeholder="Nombre completo">
+                    <input type="text" id="nuevoSocioCat" class="form-control mb-2" placeholder="Categoría">
+                    <button class="btn btn-primary w-100" id="btnGuardarSocio">AGREGAR NUEVO</button>
+                </div>
+                <h6>Listado Actual:</h6>
+                <ul id="listaSociosGuardados" class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;"></ul>
             </div>
         </div>
     </div>
 </div>
 
-<div id="modal-confirmacion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:11000; justify-content:center; align-items:center; padding:20px;">
-    <div style="background:white; padding:25px; border-radius:15px; width:100%; max-width:350px; text-align:center;">
-        <h5 style="color:#003366; font-weight:bold; margin-bottom:15px;">San Martín Hockey</h5>
-        <p id="modal-mensaje" style="font-size: 1.1rem; color: #444; margin-bottom: 25px;"></p>
+<div id="modal-confirmacion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:11000; justify-content:center; align-items:center; padding:20px;">
+    <div style="background:white; padding:30px; border-radius:20px; width:100%; max-width:350px; text-align:center; border-top: 5px solid var(--primary);">
+        <h5 style="color:var(--primary); font-weight:bold; margin-bottom:15px;">SAN MARTÍN HOCKEY</h5>
+        <p id="modal-mensaje" style="font-size: 1.1rem; color: #555; margin-bottom: 25px;"></p>
         <div class="d-flex gap-2 justify-content-center">
-            <button id="btn-cancelar" class="btn btn-light" style="flex:1; border: 1px solid #ddd;">Cancelar</button>
-            <button id="btn-confirmar" class="btn btn-primary" style="flex:1;">Aceptar</button>
+            <button id="btn-cancelar" class="btn btn-light border w-100">Cerrar</button>
+            <button id="btn-confirmar" class="btn btn-primary w-100">Aceptar</button>
         </div>
     </div>
 </div>
 
 <div id="areaRecibo">
-    <div style="border: 2px solid #000; padding: 20px;">
-        <h2 style="text-align:center; margin-bottom:0;">SAN MARTIN HOCKEY</h2>
-        <p style="text-align:center; border-bottom:1px solid #000; padding-bottom:10px;">Comprobante de Pago</p>
-        <p><strong>Folio Nro:</strong> <span id="r-folio"></span></p>
-        <p><strong>Fecha:</strong> <span id="r-fecha"></span></p>
-        <hr>
-        <p><strong>Recibimos de:</strong> <span id="r-nombre"></span></p>
-        <p><strong>Categoría:</strong> <span id="r-categoria"></span></p>
-        <p><strong>Concepto:</strong> <span id="r-concepto"></span> (<span id="r-mes"></span>)</p>
-        <p><strong>Forma de Pago:</strong> <span id="r-pago"></span></p>
-        <h3 style="text-align:right;">TOTAL: $<span id="r-total"></span></h3>
-        <br><br>
-        <p style="text-align:center;">_______________________<br>Firma y Sello</p>
+    <div style="border: 2px solid #003366; padding: 30px; border-radius: 10px; color: #003366;">
+        <h1 style="text-align:center; margin:0;">SAN MARTÍN HOCKEY</h1>
+        <p style="text-align:center; border-bottom: 2px solid #003366; padding-bottom: 10px; font-weight: bold;">RECIBO OFICIAL DE PAGO</p>
+        <div style="display: flex; justify-content: space-between;">
+            <p><strong>FOLIO:</strong> <span id="r-folio"></span></p>
+            <p><strong>FECHA:</strong> <span id="r-fecha"></span></p>
+        </div>
+        <hr style="border-top: 1px solid #003366;">
+        <p style="font-size: 1.2rem;">Recibimos de <strong><span id="r-nombre"></span></strong></p>
+        <p>Categoría: <span id="r-categoria"></span></p>
+        <p>Concepto: <span id="r-concepto"></span> - Mes: <span id="r-mes"></span></p>
+        <p>Forma de Pago: <span id="r-pago"></span></p>
+        <div style="background: #f0f0f0; padding: 15px; text-align: right; border-radius: 5px;">
+            <h2 style="margin:0;">TOTAL: $<span id="r-total"></span></h2>
+        </div>
+        <br><br><br>
+        <div style="text-align:center;">
+            <p>_________________________________<br>Firma y Sello Autorizado</p>
+        </div>
     </div>
 </div>
 
